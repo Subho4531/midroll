@@ -4,7 +4,7 @@
 ## Contract Address
 | Network  | Address                          |
 |----------|----------------------------------|
-| Devnet (Local) | `57c89664ac66a571f85b2c2fc29d9368478946decf849fa92c310e512a6444c9`   |
+| Devnet (Local) | `85dd06179800830b2d181f3238ecf3b94a0ae820bcc62953e50c0f9d26743a7d`   |
 
 *(Contract compiled with Midnight Compact DSL v0.12.1)*
 
