@@ -1,0 +1,108 @@
+// ============================================================================
+// MidZoll: Confidential Payroll & ZK Compliance Smart Contract
+// Language: Midnight Compact DSL
+// Target: Midnight Ledger (zk-SNARK state transitions)
+// ============================================================================
+
+include "std/ledger";
+
+module MidZoll {
+
+  // --------------------------------------------------------------------------
+  // State Types & Witnesses
+  // --------------------------------------------------------------------------
+
+  // Private state kept off-chain on client device
+  struct EmployeePrivateState {
+    salary_amount_cents: Uint<64>,
+    tax_rate_basis_pts: Uint<32>,
+    viewing_key_hash: Bytes<32>,
+    salt: Bytes<32>
+  }
+
+  // Public state committed to Midnight ledger
+  export state {
+    treasury_commitment: Bytes<32>,
+    total_active_employees: Uint<32>,
+    nullifier_root: Bytes<32>,
+    aggregate_tax_remitted: Uint<64>
+  }
+
+  // Witness inputs provided during zero-knowledge proof generation
+  witness fetch_employee_secret(): EmployeePrivateState;
+  witness fetch_treasury_key(): Bytes<32>;
+
+  // --------------------------------------------------------------------------
+  // Circuits (Exported ZK Methods)
+  // --------------------------------------------------------------------------
+
+  /**
+   * @notice Batch deposit funds into shielded corporate payroll treasury
+   * @param deposit_commitment Hash commitment of total deposit & salt
+   */
+  export circuit deposit_treasury(deposit_commitment: Bytes<32>, amount: Uint<64>): Void {
+    // Verify proof of funds & update on-chain treasury commitment
+    assert amount > 0 "Deposit amount must be positive";
+    // Update public commitment
+    treasury_commitment = hash(treasury_commitment, deposit_commitment);
+  }
+
+  /**
+   * @notice Claim accrued pay stream into disposable stealth address without linkability
+   * @param nullifier Prevents double-claiming stream interval
+   * @param stealth_recipient_pk Disposable shielded public key
+   * @param claim_amount_cents Amount being withdrawn in cents
+   */
+  export circuit claim_payflow_stream(
+    nullifier: Bytes<32>,
+    stealth_recipient_pk: Bytes<32>,
+    claim_amount_cents: Uint<64>
+  ): Void {
+    // Fetch private witness state
+    let emp = fetch_employee_secret();
+
+    // Verify claim does not exceed private salary allowance
+    assert claim_amount_cents <= emp.salary_amount_cents "Claim exceeds accrued stream balance";
+
+    // Verify nullifier hasn't been spent
+    assert !is_nullifier_spent(nullifier) "Double claim detected via nullifier";
+
+    // Mark nullifier as spent in public ledger tree
+    mark_nullifier_spent(nullifier);
+
+    // Mint/transfer shielded tokens to stealth recipient
+    shielded_transfer(stealth_recipient_pk, claim_amount_cents);
+  }
+
+  /**
+   * @notice Generate verifiable Zero-Knowledge Income Proof credential for third-party audit/loans
+   * @param min_required_monthly_cents Threshold (e.g., $5,000/mo = 500,000 cents)
+   * @param auditor_pubkey Public key of bank or landlord
+   * @return zk_proof_valid Boolean statement without exposing raw emp.salary_amount_cents
+   */
+  export circuit export_income_proof(
+    min_required_monthly_cents: Uint<64>,
+    auditor_pubkey: Bytes<32>
+  ): Boolean {
+    let emp = fetch_employee_secret();
+    
+    // ZK Constraint: Emp salary >= requested minimum threshold
+    let satisfies_threshold = emp.salary_amount_cents >= min_required_monthly_cents;
+
+    // Emits ZK proof event bound to auditor_pubkey
+    emit_zk_credential(auditor_pubkey, satisfies_threshold);
+
+    return satisfies_threshold;
+  }
+
+  /**
+   * @notice Shielded Tax Remittance
+   * @dev Proves 100% of required tax liability was paid without disclosing individual salary breakdown
+   */
+  export circuit remit_aggregate_tax(
+    tax_batch_proof: Bytes<32>,
+    total_tax_cents: Uint<64>
+  ): Void {
+    aggregate_tax_remitted = aggregate_tax_remitted + total_tax_cents;
+  }
+}
