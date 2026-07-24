@@ -2,52 +2,34 @@
 
 import React, { useState } from 'react';
 import { Header, ActiveTab } from '@/components/Header';
-import { PayFlowDashboard } from '@/components/PayFlowDashboard';
-import { EmployerPortal } from '@/components/EmployerPortal';
-import { ZKProofGenerator } from '@/components/ZKProofGenerator';
-import { ProofVerifierPortal } from '@/components/ProofVerifierPortal';
 import { ShieldedExpenses } from '@/components/ShieldedExpenses';
+import { AnonymousGovernance } from '@/components/AnonymousGovernance';
+import { EmployerPortal } from '@/components/EmployerPortal';
 import { CompactContractViewer } from '@/components/CompactContractViewer';
 import {
   Employee,
-  ZKProofCredential,
   ExpenseReceipt,
+  GovernancePoll,
+  WhistleblowerReport,
   INITIAL_EMPLOYEES,
   INITIAL_RECEIPTS,
-} from '@/lib/midzoll-zk';
-import { Shield, Sparkles, Lock, FileCode } from 'lucide-react';
+  INITIAL_POLLS,
+  INITIAL_WHISTLEBLOWER_REPORTS,
+} from '@/lib/midroll-zk';
+import { Shield } from 'lucide-react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('payflow');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('expenses');
   
   // App state
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [receipts, setReceipts] = useState<ExpenseReceipt[]>(INITIAL_RECEIPTS);
-  const [proofCredentials, setProofCredentials] = useState<ZKProofCredential[]>([]);
+  const [polls, setPolls] = useState<GovernancePoll[]>(INITIAL_POLLS);
+  const [whistleblowerReports, setWhistleblowerReports] = useState<WhistleblowerReport[]>(INITIAL_WHISTLEBLOWER_REPORTS);
   
   const [walletBalance, setWalletBalance] = useState<number>(128400.50);
   const [tDustBalance, setTDustBalance] = useState<number>(42500);
-
   const [treasuryBalance, setTreasuryBalance] = useState<number>(450000);
-
-  // Current logged in user profile (Elena)
-  const currentEmployee = employees[0];
-
-  const handleClaimSuccess = (claimedUSD: number) => {
-    setWalletBalance((prev) => prev + claimedUSD);
-    setTDustBalance((prev) => prev + Math.floor(claimedUSD * 2.5));
-    setEmployees((prev) =>
-      prev.map((emp, idx) =>
-        idx === 0
-          ? {
-              ...emp,
-              totalClaimedUSD: emp.totalClaimedUSD + claimedUSD,
-              lastClaimTimestamp: Date.now(),
-            }
-          : emp
-      )
-    );
-  };
 
   const handleAddEmployee = (newEmp: Employee) => {
     setEmployees((prev) => [...prev, newEmp]);
@@ -69,12 +51,31 @@ export default function Home() {
     setWalletBalance((prev) => prev + amountUSD);
   };
 
-  const handleProofCreated = (proof: ZKProofCredential) => {
-    setProofCredentials((prev) => [proof, ...prev]);
+  const handleCastVote = (pollId: string, optionIndex: number) => {
+    setPolls((prev) =>
+      prev.map((p) => {
+        if (p.id === pollId) {
+          const updatedOptions = p.options.map((opt, idx) =>
+            idx === optionIndex ? { ...opt, votesCount: opt.votesCount + 1 } : opt
+          );
+          return {
+            ...p,
+            options: updatedOptions,
+            totalVotes: p.totalVotes + 1,
+            userVotedOption: optionIndex,
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleSubmitWhistleblowerReport = (report: WhistleblowerReport) => {
+    setWhistleblowerReports((prev) => [report, ...prev]);
   };
 
   return (
-    <div className="min-h-screen bg-[#070913] text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-screen bg-[#070913] text-slate-100 flex flex-col selection:bg-purple-500 selection:text-black">
       
       {/* Navigation Bar */}
       <Header
@@ -86,10 +87,20 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'payflow' && (
-          <PayFlowDashboard
-            employee={currentEmployee}
-            onClaimSuccess={handleClaimSuccess}
+        {activeTab === 'expenses' && (
+          <ShieldedExpenses
+            receipts={receipts}
+            onAddReceipt={handleAddReceipt}
+            onReimburse={handleReimburse}
+          />
+        )}
+
+        {activeTab === 'governance' && (
+          <AnonymousGovernance
+            polls={polls}
+            onCastVote={handleCastVote}
+            whistleblowerReports={whistleblowerReports}
+            onSubmitWhistleblowerReport={handleSubmitWhistleblowerReport}
           />
         )}
 
@@ -102,25 +113,6 @@ export default function Home() {
           />
         )}
 
-        {activeTab === 'zk-generator' && (
-          <ZKProofGenerator
-            employee={currentEmployee}
-            onProofCreated={handleProofCreated}
-          />
-        )}
-
-        {activeTab === 'verifier' && (
-          <ProofVerifierPortal existingProofs={proofCredentials} />
-        )}
-
-        {activeTab === 'expenses' && (
-          <ShieldedExpenses
-            receipts={receipts}
-            onAddReceipt={handleAddReceipt}
-            onReimburse={handleReimburse}
-          />
-        )}
-
         {activeTab === 'contract' && <CompactContractViewer />}
       </main>
 
@@ -128,17 +120,15 @@ export default function Home() {
       <footer className="border-t border-indigo-900/30 glass-panel bg-slate-950/80 py-8 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div className="flex items-center space-x-2">
-            <Shield className="w-4 h-4 text-cyan-400" />
-            <span className="font-bold text-slate-200">MidZoll Protocol</span>
-            <span>&bull; Built for Midnight Blockchain</span>
+            <Shield className="w-4 h-4 text-purple-400" />
+            <span className="font-bold text-slate-200">MidRoll Protocol</span>
+            <span>&bull; Built for Midnight Blockchain (Rise In Challenge Level 1)</span>
           </div>
 
           <div className="flex items-center space-x-6 text-slate-400">
-            <span className="flex items-center gap-1 hover:text-cyan-300 transition">
-              <Lock className="w-3.5 h-3.5 text-cyan-400" /> Zero-Knowledge Privacy Guaranteed
-            </span>
-            <span className="hover:text-cyan-300 transition">Compact Smart State</span>
-            <span className="hover:text-cyan-300 transition">Midnight Network</span>
+            <span>Feature 5: Shielded Expenses</span>
+            <span>Feature 6: Anonymous Governance</span>
+            <span>Compact DSL Smart State</span>
           </div>
         </div>
       </footer>

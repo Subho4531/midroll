@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { CreditCard, ShieldCheck, Plus, CheckCircle2, Upload, Sparkles, FileText, ArrowRight } from 'lucide-react';
-import { ExpenseReceipt, formatUSD, generateZKHash } from '@/lib/midzoll-zk';
+import { ExpenseReceipt, formatUSD, generateZKHash } from '@/lib/midroll-zk';
 import confetti from 'canvas-confetti';
 
 interface ShieldedExpensesProps {
@@ -36,6 +36,7 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
       employeeShieldedId: 'emp_zk_9821',
       zkProofStatus: 'VERIFIED_SHIELDED',
       proofCommitment: generateZKHash('0xproof_receipt'),
+      receiptPolicyLimit: 2000,
     };
 
     onAddReceipt(newRec);

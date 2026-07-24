@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Building2, Users, DollarSign, ShieldAlert, Plus, Layers, ArrowUpRight, CheckCircle2, Lock, Sparkles, Filter } from 'lucide-react';
-import { Employee, formatUSD, generateZKHash } from '@/lib/midzoll-zk';
+import { Employee, formatUSD, generateZKHash } from '@/lib/midroll-zk';
 import confetti from 'canvas-confetti';
 
 interface EmployerPortalProps {
