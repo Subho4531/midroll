@@ -67,7 +67,11 @@ npx vitest run
 ```
 
 ## Initial Idea
-[LEAVE PLACEHOLDER — I will fill this in manually]
+The initial idea for **MidRoll** stems from a critical dilemma in Web3 corporate management: how can organizations maintain auditability and employee rights (reimbursements, compensation governance, whistleblower protections) without exposing private salaries, identity data, and vendor spending patterns on a public blockchain?
+
+MidRoll resolves this by leveraging **Midnight's Zero-Knowledge Compact DSL smart contract state**. By utilizing private witness inputs and client-side zk-SNARK proof generation:
+1. **Shielded Corporate Expenses (Feature 5)**: Workers generate ZK proofs attesting that expense receipts fall within merchant category policy limits. Reimbursements disburse to stealth addresses automatically without revealing credit card numbers or raw itemized purchase items.
+2. **Anonymous Governance & Whistleblower Protocol (Feature 6)**: Workers verify active payroll membership without de-anonymizing themselves, enabling anonymous compensation voting and secure whistleblower alerts protected from employer retaliation.
 
 ## Screenshots
 [LEAVE PLACEHOLDER — I will add compile output and contract address screenshots]
