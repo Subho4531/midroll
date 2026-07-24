@@ -4,8 +4,7 @@
 ## Contract Address
 | Network  | Address                          |
 |----------|----------------------------------|
-| Preview  | `0xmidroll_preview_77189a029c`   |
-| Preprod  | `0xmidroll_preprod_881900aa1f`   |
+| Devnet (Local) | `57c89664ac66a571f85b2c2fc29d9368478946decf849fa92c310e512a6444c9`   |
 
 *(Contract compiled with Midnight Compact DSL v0.12.1)*
 
