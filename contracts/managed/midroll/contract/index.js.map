@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../",
+  "sources": ["contracts/midroll.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;MAMA,AAAA,sBAEC;;;;;cAFqC,QAAgB;;;;;;;;;;;;;;;;;;yCAAhB,QAAgB;;;;;;;;;wDAAhB,QAAgB;;;OAErD;MAED,AAAA,kBAEC;;;;;cAFiC,aAAqB;;;;;;;;;;;;;;;;;;yCAArB,aAAqB;;;;;;;;;oDAArB,aAAqB;;;OAEtD;;;;;;;;;;GACA;EAbD;;;;;;;;;;;;;;;;;;;;;;;;;;;IAIA;;;;;;;;;yEAA8B;;;;;;;GAS7B;EAPD,AAAA,yBAEC,4BAFqC,QAAgB;UAClD,KAAK;IAAL;;;;;;;2HAAA,KAAK;;yEAAA;;GACR;EAED,AAAA,qBAEC,4BAFiC,aAAqB;UACnD,KAAK;IAAL;;;;;;;2HAAA,KAAK;;yEAAA;;GACR;;;;;;;;;;;;;;;;IARD;qCAAA;;;;;;;;;;;0GAA8B;KAAA;;;;;;;;;;"
+}

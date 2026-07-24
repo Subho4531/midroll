@@ -73,5 +73,9 @@ MidRoll resolves this by leveraging **Midnight's Zero-Knowledge Compact DSL smar
 1. **Shielded Corporate Expenses (Feature 5)**: Workers generate ZK proofs attesting that expense receipts fall within merchant category policy limits. Reimbursements disburse to stealth addresses automatically without revealing credit card numbers or raw itemized purchase items.
 2. **Anonymous Governance & Whistleblower Protocol (Feature 6)**: Workers verify active payroll membership without de-anonymizing themselves, enabling anonymous compensation voting and secure whistleblower alerts protected from employer retaliation.
 
-## Screenshots
-[LEAVE PLACEHOLDER — I will add compile output and contract address screenshots]
+## Compile Output
+```bash
+$ wsl ~/.local/bin/compact compile contracts/midroll.compact contracts/managed/midroll
+Compiling 2 circuits:
+```
+*(The contract has been successfully compiled into `contracts/managed/midroll/`)*
