@@ -13,13 +13,13 @@ MidRoll enables decentralized organizations and companies to execute confidentia
 - **Feature 5 (Shielded Corporate Expense Reimbursements)**: Employees submit zero-knowledge merchant receipt proofs attesting that expenses fall within category limits. Treasury disburses reimbursements directly to disposable stealth addresses without exposing itemized receipts, personal card numbers, or vendor details.
 - **Feature 6 (Anonymous Employee Governance & Whistleblower Protocol)**: Employees verify payroll status via ZK witnesses to vote on company polls and submit encrypted internal compliance alerts without fear of employer retaliation or identity de-anonymization.
 
-## Privacy Model
-- **PUBLIC (on-chain, visible to anyone)**:
+## Public State vs Private Witness
+- **Public State (on-chain, visible to anyone)**:
   - `treasury_commitment`: Hash commitment of corporate payroll treasury pool.
   - `nullifier_root`: Set of spent nullifiers preventing double-claiming expenses & double-voting.
   - `active_proposals_count`: Total active DAO governance polls.
   - `aggregate_expense_disbursed`: Cumulative verified reimbursement payout.
-- **PRIVATE (private witness, never on-chain)**:
+- **Private Witness (client-side, never on-chain)**:
   - `salary_amount_cents`: Employee's raw monthly compensation rate.
   - `employee_secret_key`: Secret key used for signing client-side ZK proofs.
   - `receipt_itemized_details`: Raw itemized purchase items and merchant credit card data.
@@ -41,7 +41,7 @@ MidRoll enables decentralized organizations and companies to execute confidentia
 - Docker Desktop (for `midnightnetwork/proof-server`)
 - Git & GitHub CLI (`gh`)
 
-## Setup
+## Setup Instructions
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/Subho4531/midroll.git
@@ -53,7 +53,22 @@ MidRoll enables decentralized organizations and companies to execute confidentia
    npm install
    ```
 
-3. **Run the local development server**:
+3. **Start the local Proof Server & Midnight Node (Devnet)**:
+   ```bash
+   npm run proof-server:start
+   ```
+
+4. **Deploy the Smart Contract**:
+   To deploy to the local Devnet:
+   ```bash
+   npm run deploy
+   ```
+   To deploy to the public Preview network:
+   ```bash
+   npm run deploy --network preview
+   ```
+
+5. **Run the local Web Frontend**:
    ```bash
    npm run dev
    ```
@@ -72,9 +87,10 @@ MidRoll resolves this by leveraging **Midnight's Zero-Knowledge Compact DSL smar
 1. **Shielded Corporate Expenses (Feature 5)**: Workers generate ZK proofs attesting that expense receipts fall within merchant category policy limits. Reimbursements disburse to stealth addresses automatically without revealing credit card numbers or raw itemized purchase items.
 2. **Anonymous Governance & Whistleblower Protocol (Feature 6)**: Workers verify active payroll membership without de-anonymizing themselves, enabling anonymous compensation voting and secure whistleblower alerts protected from employer retaliation.
 
-## Compile Output
-```bash
-$ wsl ~/.local/bin/compact compile contracts/midroll.compact contracts/managed/midroll
-Compiling 2 circuits:
-```
-*(The contract has been successfully compiled into `contracts/managed/midroll/`)*
+## Screenshots
+
+### 1. Successful Compile Output (Circuits Listed)
+![Compile Output](./screenshots/contract_compile.png)
+
+### 2. Contract Deployed with Address Shown
+![Deploy Output](./screenshots/contract_deploy.png)
