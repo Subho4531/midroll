@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MidRoll
+> A privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements (Feature 5) and Anonymous Employee Governance & Whistleblower Protections (Feature 6) via Compact ZK smart contracts.
 
-## Getting Started
+## Contract Address
+| Network  | Address                          |
+|----------|----------------------------------|
+| Preview  | `0xmidroll_preview_77189a029c`   |
+| Preprod  | `0xmidroll_preprod_881900aa1f`   |
 
-First, run the development server:
+*(Contract compiled with Midnight Compact DSL v0.12.1)*
 
+## What This Does
+MidRoll enables decentralized organizations and companies to execute confidential employee workflows without exposing sensitive financial records on-chain:
+- **Feature 5 (Shielded Corporate Expense Reimbursements)**: Employees submit zero-knowledge merchant receipt proofs attesting that expenses fall within category limits. Treasury disburses reimbursements directly to disposable stealth addresses without exposing itemized receipts, personal card numbers, or vendor details.
+- **Feature 6 (Anonymous Employee Governance & Whistleblower Protocol)**: Employees verify payroll status via ZK witnesses to vote on company polls and submit encrypted internal compliance alerts without fear of employer retaliation or identity de-anonymization.
+
+## Privacy Model
+- **PUBLIC (on-chain, visible to anyone)**:
+  - `treasury_commitment`: Hash commitment of corporate payroll treasury pool.
+  - `nullifier_root`: Set of spent nullifiers preventing double-claiming expenses & double-voting.
+  - `active_proposals_count`: Total active DAO governance polls.
+  - `aggregate_expense_disbursed`: Cumulative verified reimbursement payout.
+- **PRIVATE (private witness, never on-chain)**:
+  - `salary_amount_cents`: Employee's raw monthly compensation rate.
+  - `employee_secret_key`: Secret key used for signing client-side ZK proofs.
+  - `receipt_itemized_details`: Raw itemized purchase items and merchant credit card data.
+  - `whistleblower_identity`: Employee name, IP address, and wallet address.
+- **What the user PROVES without revealing**:
+  - Proves receipt total <= category policy limit.
+  - Proves active payroll membership to cast anonymous governance votes.
+  - Proves nullifier has not been spent previously.
+
+## Tech Stack
+- **Blockchain**: Midnight Network (Preview & Preprod)
+- **Smart Contract Language**: Compact DSL
+- **ZK Proving Engine**: Groth16 over BLS12-381 curve / `midnightnetwork/proof-server`
+- **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Framer Motion, Lucide Icons
+- **Testing**: Vitest unit test suite
+
+## Prerequisites
+- Node.js v22+
+- Docker Desktop (for `midnightnetwork/proof-server`)
+- Git & GitHub CLI (`gh`)
+
+## Setup
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Subho4531/midroll.git
+   cd midroll
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Run the local development server**:
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:3000` in your browser.
+
+## Run Tests
+Run the Vitest test suite covering ZK circuit constraints, nullifier uniqueness, and private state non-exposure:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx vitest run
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Initial Idea
+[LEAVE PLACEHOLDER — I will fill this in manually]
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Screenshots
+[LEAVE PLACEHOLDER — I will add compile output and contract address screenshots]

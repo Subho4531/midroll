@@ -1,0 +1,141 @@
+// ============================================================================
+// MidRoll: Private Payroll, Shielded Expenses & Anonymous Governance
+// Language: Midnight Compact DSL
+// Target: Midnight Ledger (zk-SNARK state transitions)
+// ============================================================================
+// 
+// PRIVACY MODEL:
+// ----------------------------------------------------------------------------
+// PUBLIC (On-Chain, visible to anyone):
+//   - treasury_commitment: Hash commitment of corporate treasury pool
+//   - nullifier_root: Set of spent nullifier hashes preventing double-claim/vote
+//   - active_proposals_count: Total active governance proposals
+//   - aggregate_expense_disbursed: Total verified reimbursement payout
+//
+// PRIVATE (Off-Chain Client Witness, never disclosed):
+//   - salary_amount_cents: Raw monthly compensation
+//   - employee_secret_key: Secret key used to sign ZK claims and votes
+//   - receipt_itemized_details: Specific vendor items and credit card numbers
+//   - whistleblower_identity: Employee name/ID/salary band
+//
+// WHAT THE USER PROVES (Zero-Knowledge Statement):
+//   - Proves receipt total <= policy threshold for expense category
+//   - Proves active payroll membership to cast anonymous governance vote
+//   - Proves nullifier has not been spent previously
+// ============================================================================
+
+include "std/ledger";
+
+module MidRoll {
+
+  // --------------------------------------------------------------------------
+  // Private Witness & Public State Definitions
+  // --------------------------------------------------------------------------
+
+  struct EmployeePrivateState {
+    salary_amount_cents: Uint<64>,
+    employee_secret_key: Bytes<32>,
+    viewing_key_hash: Bytes<32>,
+    salt: Bytes<32>
+  }
+
+  struct ExpenseWitness {
+    merchant_hash: Bytes<32>,
+    amount_cents: Uint<64>,
+    category_code: Uint<32>
+  }
+
+  struct VoteWitness {
+    voter_secret: Bytes<32>,
+    proposal_id: Uint<32>,
+    choice_index: Uint<32>
+  }
+
+  export state {
+    treasury_commitment: Bytes<32>,
+    nullifier_root: Bytes<32>,
+    active_proposals_count: Uint<32>,
+    aggregate_expense_disbursed: Uint<64>
+  }
+
+  witness fetch_employee_secret(): EmployeePrivateState;
+  witness fetch_expense_witness(): ExpenseWitness;
+  witness fetch_vote_witness(): VoteWitness;
+
+  // --------------------------------------------------------------------------
+  // Exported Circuits (ZK Methods)
+  // --------------------------------------------------------------------------
+
+  /**
+   * @notice Feature 5: Claim Shielded Corporate Expense Reimbursement
+   * @param nullifier Prevents double reimbursement of the same merchant receipt
+   * @param recipient_stealth_pk Disposable shielded public key
+   * @param category_policy_limit_cents Maximum allowed reimbursement for this category
+   */
+  export circuit claim_shielded_expense(
+    nullifier: Bytes<32>,
+    recipient_stealth_pk: Bytes<32>,
+    category_policy_limit_cents: Uint<64>
+  ): Void {
+    let exp = fetch_expense_witness();
+
+    // ZK Constraint: Receipt total <= Policy Limit
+    assert exp.amount_cents <= category_policy_limit_cents "Receipt exceeds policy reimbursement limit";
+
+    // Verify nullifier hasn't been spent
+    assert !is_nullifier_spent(nullifier) "Receipt nullifier already claimed";
+
+    // Mark nullifier spent on public ledger
+    mark_nullifier_spent(nullifier);
+
+    // Update aggregate public state
+    aggregate_expense_disbursed = aggregate_expense_disbursed + exp.amount_cents;
+
+    // Disburse shielded tokens to stealth key
+    shielded_transfer(recipient_stealth_pk, exp.amount_cents);
+  }
+
+  /**
+   * @notice Feature 6: Cast Shielded Anonymous Governance Vote
+   * @param proposal_id Target DAO governance proposal
+   * @param vote_nullifier Unique nullifier per proposal to prevent double voting
+   * @param choice_index Selected option index
+   */
+  export circuit cast_shielded_vote(
+    proposal_id: Uint<32>,
+    vote_nullifier: Bytes<32>,
+    choice_index: Uint<32>
+  ): Void {
+    let emp = fetch_employee_secret();
+
+    // ZK Constraint: Employee is active payroll member (salary > 0)
+    assert emp.salary_amount_cents > 0 "Must be active payroll member to vote";
+
+    // Ensure vote nullifier is unspent for this proposal
+    assert !is_nullifier_spent(vote_nullifier) "Double vote detected for proposal";
+
+    mark_nullifier_spent(vote_nullifier);
+
+    // Emit verifiable vote statement without disclosing emp identity
+    emit_shielded_vote(proposal_id, choice_index);
+  }
+
+  /**
+   * @notice Feature 6: Submit Encrypted Whistleblower Report
+   * @param report_hash Cryptographic hash of encrypted report payload
+   * @param wb_nullifier One-time nullifier to track investigation status
+   */
+  export circuit submit_whistleblower_report(
+    report_hash: Bytes<32>,
+    wb_nullifier: Bytes<32>
+  ): Void {
+    let emp = fetch_employee_secret();
+
+    // Proves submitter is valid payroll recipient
+    assert emp.salary_amount_cents > 0 "Must be active payroll recipient";
+
+    mark_nullifier_spent(wb_nullifier);
+
+    emit_whistleblower_alert(report_hash);
+  }
+}
