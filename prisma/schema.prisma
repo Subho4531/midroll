@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Contact {
+  walletAddress String   @id
+  name          String
+  purpose       String
+  amount        Float    @default(0.0)
+  teams         Team[]   @relation("TeamMembers")
+  createdAt     DateTime @default(now())
+}
+
+model Team {
+  id        String    @id @default(uuid())
+  name      String
+  members   Contact[] @relation("TeamMembers")
+  createdAt DateTime  @default(now())
+}
