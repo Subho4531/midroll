@@ -16,11 +16,13 @@ import {
   INITIAL_POLLS,
   INITIAL_WHISTLEBLOWER_REPORTS,
 } from '@/lib/midroll-zk';
-import { Shield, Sparkles } from 'lucide-react';
+import { Shield, Search, Bell, Wallet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useLaceWallet } from '@/lib/lace-wallet-context';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('expenses');
+  const { isConnected, connect } = useLaceWallet();
   
   // App state
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
@@ -71,63 +73,113 @@ export default function Home() {
     setWhistleblowerReports((prev) => [report, ...prev]);
   };
 
+  const todayStr = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const getCrumbText = () => {
+    switch (activeTab) {
+      case 'expenses':
+        return 'MIDROLL / SHIELDED EXPENSES';
+      case 'governance':
+        return 'MIDROLL / ANONYMOUS GOVERNANCE';
+      case 'employer':
+        return 'MIDROLL / EMPLOYER PORTAL';
+      case 'contract':
+        return 'MIDROLL / COMPACT CODE';
+      default:
+        return 'MIDROLL / DASHBOARD';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#070913] text-slate-100 flex flex-col selection:bg-purple-500 selection:text-white">
-      
-      {/* Navigation Header */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+    <div className="shell selection:bg-[#d7ff65] selection:text-[#17211b]">
+      {/* Sidebar Navigation */}
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'expenses' && (
-          <ShieldedExpenses
-            receipts={receipts}
-            onAddReceipt={handleAddReceipt}
-            onReimburse={handleReimburse}
-          />
-        )}
+      {/* Main Workspace Column */}
+      <main className="main">
+        {/* Top Header Bar */}
+        <header className="top">
+          <div className="crumb">{getCrumbText()}</div>
+          <div className="top-actions">
+            <button className="icon-btn" aria-label="Search">
+              <Search className="w-4 h-4" />
+            </button>
+            <button className="icon-btn" aria-label="Notifications">
+              <Bell className="w-4 h-4" />
+            </button>
+            {!isConnected && (
+              <button className="new" onClick={connect}>
+                <Wallet className="w-4 h-4" /> Connect Lace
+              </button>
+            )}
+          </div>
+        </header>
 
-        {activeTab === 'governance' && (
-          <AnonymousGovernance
-            polls={polls}
-            onCastVote={handleCastVote}
-            whistleblowerReports={whistleblowerReports}
-            onSubmitWhistleblowerReport={handleSubmitWhistleblowerReport}
-          />
-        )}
+        {/* Intro Section */}
+        <section className="intro">
+          <div>
+            <div className="eyebrow">{todayStr}</div>
+            <h1>Good morning, Subho.</h1>
+          </div>
+          <p>Your workspace is running with ZK-hardened compliance and payroll integrity.</p>
+        </section>
 
-        {activeTab === 'employer' && (
-          <EmployerPortal
-            employees={employees}
-            onAddEmployee={handleAddEmployee}
-            treasuryBalanceUSD={treasuryBalance}
-            onDepositTreasury={handleDepositTreasury}
-          />
-        )}
+        {/* Dynamic Main Content */}
+        <div className="space-y-8">
+          {activeTab === 'expenses' && (
+            <ShieldedExpenses
+              receipts={receipts}
+              onAddReceipt={handleAddReceipt}
+              onReimburse={handleReimburse}
+            />
+          )}
 
-        {activeTab === 'contract' && <CompactContractViewer />}
-      </main>
+          {activeTab === 'governance' && (
+            <AnonymousGovernance
+              polls={polls}
+              onCastVote={handleCastVote}
+              whistleblowerReports={whistleblowerReports}
+              onSubmitWhistleblowerReport={handleSubmitWhistleblowerReport}
+            />
+          )}
 
-      {/* Footer */}
-      <footer className="border-t border-indigo-900/40 bg-slate-950/90 backdrop-blur-xl py-8 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          {activeTab === 'employer' && (
+            <EmployerPortal
+              employees={employees}
+              onAddEmployee={handleAddEmployee}
+              treasuryBalanceUSD={treasuryBalance}
+              onDepositTreasury={handleDepositTreasury}
+            />
+          )}
+
+          {activeTab === 'contract' && <CompactContractViewer />}
+        </div>
+
+        {/* Footer Area */}
+        <footer className="border-t border-line mt-16 pt-8 pb-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted">
           <div className="flex items-center space-x-2">
-            <Shield className="w-4 h-4 text-purple-400" />
-            <span className="font-bold text-slate-200">MidRoll Protocol</span>
+            <Shield className="w-4 h-4 text-ink" />
+            <span className="font-bold text-ink">MidRoll Protocol</span>
             <span>&bull; Built for Midnight Blockchain (Rise In Challenge Level 1)</span>
           </div>
 
           <div className="flex items-center space-x-4">
-            <Badge variant="outline" className="text-[11px]">Feature 5: Shielded Expenses</Badge>
-            <Badge variant="outline" className="text-[11px]">Feature 6: Anonymous Governance</Badge>
-            <Badge variant="cyan" className="text-[11px]">Compact DSL v0.23</Badge>
+            <Badge variant="outline" className="text-[11px] border-line text-muted bg-[#eef4ee]">
+              Feature 5: Shielded Expenses
+            </Badge>
+            <Badge variant="outline" className="text-[11px] border-line text-muted bg-[#eef4ee]">
+              Feature 6: Anonymous Governance
+            </Badge>
+            <Badge variant="outline" className="text-[11px] border-line text-muted bg-[#eef4ee]">
+              Compact DSL v0.23
+            </Badge>
           </div>
-        </div>
-      </footer>
-
+        </footer>
+      </main>
     </div>
   );
 }

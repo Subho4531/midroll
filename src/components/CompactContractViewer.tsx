@@ -45,54 +45,53 @@ export circuit cast_shielded_vote(proposal_id: Uint<32>): [] {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Banner Card */}
-      <Card className="border-blue-500/30 bg-slate-950/90 shadow-2xl relative overflow-hidden">
-        <CardHeader className="p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-            <div>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">
-                <Terminal className="w-4 h-4" />
-                <span>Native Midnight Compact Smart Contract</span>
-              </div>
-              <CardTitle className="text-3xl font-extrabold text-white">
-                Compact DSL <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Circuit Source</span>
-              </CardTitle>
-              <CardDescription className="text-sm text-slate-300 mt-1">
-                Inspecting <code className="text-cyan-300 bg-slate-900 px-2 py-0.5 rounded font-mono">contracts/midroll.compact</code> - zero-knowledge state definition compiled for Midnight blockchain.
-              </CardDescription>
-            </div>
-
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={handleCopy}
-              className="gap-2 shrink-0 border-blue-500/30 text-blue-300 hover:bg-slate-900"
-            >
-              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Copied!' : 'Copy Compact Code'}</span>
-            </Button>
+      <div className="card hero relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+          <div>
+            <div className="eyebrow text-[#aebbb2] mb-2 font-mono">Native Midnight Compact Smart Contract</div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight" style={{ color: 'white' }}>
+              Compact DSL Circuit Source
+            </h1>
+            <p className="text-sm text-[#aebbb2] mt-2 max-w-2xl">
+              Inspecting <code className="text-[#d7ff65] bg-white/10 px-2 py-0.5 rounded font-mono">contracts/midroll.compact</code> - zero-knowledge state definition compiled for Midnight blockchain.
+            </p>
           </div>
-        </CardHeader>
-      </Card>
+
+          <button
+            onClick={handleCopy}
+            className="new shrink-0"
+            style={{ background: 'var(--lime)', color: 'var(--ink)' }}
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            <span>{copied ? 'Copied Code!' : 'Copy Compact Code'}</span>
+          </button>
+        </div>
+        <div className="orb"></div>
+      </div>
 
       {/* Code Display Container */}
-      <Card className="border-indigo-900/40 overflow-hidden shadow-2xl p-0">
-        <div className="bg-slate-950 px-6 py-3 border-b border-indigo-900/40 flex items-center justify-between text-xs font-mono text-slate-400">
+      <div className="card" style={{ padding: 0 }}>
+        <div className="bg-[#f8faf7] px-6 py-4 border-b border-line flex items-center justify-between text-xs font-mono text-muted rounded-t-[18px]">
           <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
-            <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
-            <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
-            <span className="ml-2 text-slate-200">contracts/midroll.compact</span>
+            <span className="w-3.5 h-3.5 rounded-full bg-[#ffdbda] border border-[#f3aaa4] inline-block"></span>
+            <span className="w-3.5 h-3.5 rounded-full bg-[#fffbeb] border border-[#fde68a] inline-block"></span>
+            <span className="w-3.5 h-3.5 rounded-full bg-[#c6f6d5] border border-[#a3e9b9] inline-block"></span>
+            <span className="ml-2 text-ink font-bold">contracts/midroll.compact</span>
           </div>
           <div className="flex items-center space-x-4">
-            <Badge variant="cyan">Target: Midnight Ledger</Badge>
-            <Badge variant="outline">Compiler: compact DSL v0.23</Badge>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#eef4ee] border border-line text-ink">
+              Target: Midnight Ledger
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#eef4ee] border border-line text-ink">
+              Compiler: compact DSL v0.23
+            </span>
           </div>
         </div>
 
-        <pre className="p-6 text-xs sm:text-sm font-mono text-slate-200 overflow-x-auto bg-slate-950/90 leading-relaxed selection:bg-cyan-500 selection:text-black">
+        <pre className="p-6 text-xs sm:text-sm font-mono text-ink overflow-x-auto bg-[#fbfcfa] leading-relaxed selection:bg-[#d7ff65] selection:text-[#17211b] rounded-b-[18px]">
           <code>{compactCode}</code>
         </pre>
-      </Card>
+      </div>
     </div>
   );
 };

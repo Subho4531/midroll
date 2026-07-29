@@ -91,89 +91,93 @@ export const AnonymousGovernance: React.FC<AnonymousGovernanceProps> = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Header Banner */}
-      <Card className="border-cyan-500/30 bg-slate-950/90 shadow-2xl relative overflow-hidden">
-        <CardHeader className="p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-            <div>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">
-                <Vote className="w-4 h-4" />
-                <span>Feature 6 &bull; Shielded Employee Voice</span>
-              </div>
-              <CardTitle className="text-3xl font-extrabold text-white">
-                Anonymous Governance & <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">Whistleblower Protocol</span>
-              </CardTitle>
-              <CardDescription className="text-sm text-slate-300 mt-1 max-w-2xl">
-                Participate in company decision polls and submit confidential alerts with zero-knowledge membership proofs — untraceable to your identity or salary.
-              </CardDescription>
-            </div>
-
-            <div className="flex items-center space-x-2 bg-slate-900/90 p-1.5 rounded-2xl border border-indigo-900/50 shrink-0">
-              <Button
-                variant={activeSubTab === 'polls' ? 'cyan' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveSubTab('polls')}
-              >
-                DAO Governance Polls
-              </Button>
-              <Button
-                variant={activeSubTab === 'whistleblower' ? 'destructive' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveSubTab('whistleblower')}
-              >
-                Whistleblower Portal
-              </Button>
-            </div>
+      <div className="card hero relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
+          <div>
+            <div className="eyebrow text-[#aebbb2] mb-2">Feature 6 &bull; Shielded Employee Voice</div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight" style={{ color: 'white' }}>
+              Anonymous Governance & Whistleblower Protocol
+            </h1>
+            <p className="text-sm text-[#aebbb2] mt-2 max-w-2xl">
+              Participate in company decision polls and submit confidential alerts with zero-knowledge membership proofs — untraceable to your identity or salary.
+            </p>
           </div>
-        </CardHeader>
-      </Card>
+
+          <div className="flex items-center space-x-2 bg-white/10 p-1.5 rounded-xl border border-white/15 shrink-0">
+            <button
+              onClick={() => setActiveSubTab('polls')}
+              className={`py-1.5 px-3.5 rounded-lg text-xs font-bold transition ${activeSubTab === 'polls' ? 'bg-[#d7ff65] text-[#17211b]' : 'text-white hover:bg-white/5'}`}
+            >
+              DAO Governance Polls
+            </button>
+            <button
+              onClick={() => setActiveSubTab('whistleblower')}
+              className={`py-1.5 px-3.5 rounded-lg text-xs font-bold transition ${activeSubTab === 'whistleblower' ? 'bg-[#ffdbda] text-[#17211b]' : 'text-white hover:bg-white/5'}`}
+            >
+              Whistleblower Portal
+            </button>
+          </div>
+        </div>
+        <div className="orb"></div>
+      </div>
 
       {/* Tab 1: Polls */}
       {activeSubTab === 'polls' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {polls.map((poll) => (
-            <Card key={poll.id} className="border-indigo-900/40 flex flex-col justify-between hover:border-cyan-500/40">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between mb-3">
-                  <Badge variant="cyan">{poll.category}</Badge>
-                  <span className="text-[11px] text-slate-400 font-mono">Ends: {poll.deadline}</span>
-                </div>
-                <CardTitle className="text-base text-white">{poll.title}</CardTitle>
-                <CardDescription className="text-xs text-slate-300">{poll.description}</CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {poll.options.map((opt, idx) => {
-                    const pct = poll.totalVotes > 0 ? Math.round((opt.votesCount / poll.totalVotes) * 100) : 0;
-                    return (
-                      <div key={idx} className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-medium">
-                          <span className="text-slate-200">{opt.text}</span>
-                          <span className="text-cyan-400 font-mono font-bold">{pct}% ({opt.votesCount})</span>
-                        </div>
-                        <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                          <div
-                            className="h-full bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-500 rounded-full"
-                            style={{ width: `${pct}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
+            <div key={poll.id} className="card flex flex-col justify-between hover:border-line">
+              <div>
+                <div className="card-head pb-3 border-b border-line mb-4 flex justify-between items-start">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#eef4ee] border border-line text-ink font-mono uppercase">
+                      {poll.category}
+                    </span>
+                    <h2 className="text-base font-extrabold text-ink mt-3">{poll.title}</h2>
+                    <p className="text-xs text-muted mt-1 leading-relaxed">{poll.description}</p>
+                  </div>
+                  <span className="text-[10px] text-muted font-mono whitespace-nowrap bg-[#f8faf7] border border-line px-2 py-0.5 rounded-md">
+                    Ends: {poll.deadline}
+                  </span>
                 </div>
 
-                <div className="pt-4 border-t border-indigo-900/40 flex items-center justify-between">
-                  <div className="flex items-center space-x-1.5 text-xs text-slate-400">
-                    <UserCheck className="w-4 h-4 text-emerald-400" />
-                    <span>ZK Payroll Verified</span>
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    {poll.options.map((opt, idx) => {
+                      const pct = poll.totalVotes > 0 ? Math.round((opt.votesCount / poll.totalVotes) * 100) : 0;
+                      return (
+                        <div key={idx} className="space-y-1.5">
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-ink font-semibold">{opt.text}</span>
+                            <span className="text-ink font-mono font-bold">{pct}% ({opt.votesCount})</span>
+                          </div>
+                          <div className="w-full bg-[#edf1ed] h-2 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-ink transition-all duration-500 rounded-full"
+                              style={{ width: `${pct}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  <Button variant="cyan" size="sm" onClick={() => handleOpenVoteModal(poll)}>
-                    Cast Shielded Vote
-                  </Button>
+                  <div className="pt-4 border-t border-line flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 text-xs text-muted font-mono">
+                      <UserCheck className="w-4 h-4 text-emerald-600" />
+                      <span>ZK Payroll Verified</span>
+                    </div>
+
+                    <button
+                      onClick={() => handleOpenVoteModal(poll)}
+                      className="new py-1.5 px-3 text-xs font-semibold"
+                      style={{ padding: '6px 12px', fontSize: '11px' }}
+                    >
+                      Cast Shielded Vote
+                    </button>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -182,88 +186,84 @@ export const AnonymousGovernance: React.FC<AnonymousGovernanceProps> = ({
       {activeSubTab === 'whistleblower' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Submit Alert Form */}
-          <Card className="border-rose-500/30">
-            <CardHeader>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-rose-400 uppercase tracking-wider mb-1">
+          <div className="card">
+            <div className="card-head border-b border-line pb-3 mb-4">
+              <div className="flex items-center space-x-2 text-xs font-semibold text-[#b45309] uppercase tracking-wider mb-1 font-mono">
                 <AlertTriangle className="w-4 h-4" />
                 <span>Anti-Retaliation Encrypted Channel</span>
               </div>
-              <CardTitle className="text-xl">Submit Anonymous Whistleblower Alert</CardTitle>
-              <CardDescription>
+              <h2>Submit Anonymous Whistleblower Alert</h2>
+              <p className="text-xs text-muted mt-1 leading-relaxed">
                 Includes a zero-knowledge proof attesting that you are a verified MidRoll payroll recipient, while completely hiding your identity, IP address, and wallet address.
-              </CardDescription>
-            </CardHeader>
+              </p>
+            </div>
 
-            <CardContent>
-              <form onSubmit={handleSubmitWbReport} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Issue Category</label>
-                  <select
-                    value={wbCategory}
-                    onChange={(e) => setWbCategory(e.target.value as any)}
-                    className="flex h-11 w-full rounded-xl border border-indigo-900/50 bg-slate-950 px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
-                  >
-                    <option value="Security Breach">Security Breach / Vulnerability</option>
-                    <option value="Financial Irregularity">Financial Irregularity / Accounting Misconduct</option>
-                    <option value="HR Harassment">HR Harassment / Ethics Violation</option>
-                    <option value="Compliance Violation">Regulatory / Compliance Non-Conformity</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Encrypted Confidential Report</label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={wbMessage}
-                    onChange={(e) => setWbMessage(e.target.value)}
-                    placeholder="Provide detailed information regarding the issue. All text is client-side encrypted prior to ledger commitment."
-                    className="flex w-full rounded-xl border border-indigo-900/50 bg-slate-950 px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  size="lg"
-                  disabled={isSubmittingWb}
-                  className="w-full gap-2 mt-2"
+            <form onSubmit={handleSubmitWbReport} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-muted mb-1.5 font-mono">Issue Category</label>
+                <select
+                  value={wbCategory}
+                  onChange={(e) => setWbCategory(e.target.value as any)}
+                  className="flex h-11 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-ink/20"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>{isSubmittingWb ? 'Synthesizing ZK Whistleblower Proof...' : 'Submit Anonymous Report'}</span>
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <option value="Security Breach">Security Breach / Vulnerability</option>
+                  <option value="Financial Irregularity">Financial Irregularity / Accounting Misconduct</option>
+                  <option value="HR Harassment">HR Harassment / Ethics Violation</option>
+                  <option value="Compliance Violation">Regulatory / Compliance Non-Conformity</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted mb-1.5 font-mono">Encrypted Confidential Report</label>
+                <textarea
+                  rows={4}
+                  required
+                  value={wbMessage}
+                  onChange={(e) => setWbMessage(e.target.value)}
+                  placeholder="Provide detailed information regarding the issue. All text is client-side encrypted prior to ledger commitment."
+                  className="flex w-full rounded-xl border border-line bg-white px-3.5 py-2 text-xs text-ink placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-ink/20 font-sans"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingWb}
+                className="new w-full justify-center py-2.5 text-xs font-bold"
+                style={{ background: '#ffdbda', color: '#881337', borderColor: '#f3aaa4' }}
+              >
+                <Send className="w-4 h-4" />
+                <span>{isSubmittingWb ? 'Synthesizing ZK Whistleblower Proof...' : 'Submit Anonymous Report'}</span>
+              </button>
+            </form>
+          </div>
 
           {/* Audit Trail Log */}
-          <Card className="border-indigo-900/40">
-            <CardHeader>
-              <CardTitle className="text-lg text-white flex items-center gap-2">
-                <Lock className="w-5 h-5 text-cyan-400" />
-                <span>Verified Whistleblower Audit Trail</span>
-              </CardTitle>
-              <CardDescription>Ledger-verified alerts containing ZK payroll proof hashes</CardDescription>
-            </CardHeader>
+          <div className="card">
+            <div className="card-head border-b border-line pb-3 mb-4">
+              <h2>Verified Whistleblower Audit Trail</h2>
+              <p className="text-xs text-muted mt-1">Ledger-verified alerts containing ZK payroll proof hashes</p>
+            </div>
 
-            <CardContent className="space-y-3">
+            <div className="space-y-3">
               {whistleblowerReports.map((wb) => (
-                <div key={wb.id} className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 space-y-2 text-xs">
+                <div key={wb.id} className="p-4 bg-[#f8faf7] rounded-2xl border border-line space-y-2 text-xs">
                   <div className="flex justify-between items-center font-bold">
-                    <span className="text-rose-400 font-mono">{wb.id}</span>
-                    <Badge variant="emerald">{wb.investigationStatus}</Badge>
+                    <span className="text-[#881337] font-mono">{wb.id}</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#c6f6d5] border border-[#a3e9b9] text-[#1c6434]">
+                      {wb.investigationStatus}
+                    </span>
                   </div>
-                  <div className="text-slate-300 font-mono text-[11px] bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-ink font-mono text-[11px] bg-white p-2.5 rounded-xl border border-line break-all">
                     {wb.encryptedContent}
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                  <div className="flex justify-between text-[10px] text-muted font-mono">
                     <span>ZK Proof: {wb.zkPayrollProofHash.substring(0, 16)}...</span>
                     <span>{wb.timestamp}</span>
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
@@ -280,10 +280,10 @@ export const AnonymousGovernance: React.FC<AnonymousGovernanceProps> = ({
               <label
                 key={idx}
                 onClick={() => setSelectedOption(idx)}
-                className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition text-xs font-medium ${
+                className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition text-xs font-semibold ${
                   selectedOption === idx
-                    ? 'bg-cyan-950/80 border-cyan-500 text-cyan-300 font-bold shadow-[0_0_15px_rgba(0,240,255,0.15)]'
-                    : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-slate-700'
+                    ? 'bg-[#eaf1ea] border-ink text-ink font-bold shadow-sm'
+                    : 'bg-white border-line text-ink hover:border-ink'
                 }`}
               >
                 <span>{opt.text}</span>
@@ -292,19 +292,19 @@ export const AnonymousGovernance: React.FC<AnonymousGovernanceProps> = ({
                   name="vote_option"
                   checked={selectedOption === idx}
                   onChange={() => setSelectedOption(idx)}
-                  className="accent-cyan-400"
+                  className="accent-ink"
                 />
               </label>
             ))}
 
             {isVoting && (
               <div className="space-y-1.5 pt-2">
-                <div className="flex justify-between text-xs text-cyan-400 font-semibold">
+                <div className="flex justify-between text-xs text-ink font-bold font-mono">
                   <span>Generating Groth16 Nullifier Proof...</span>
                   <span>{voteProgress}%</span>
                 </div>
-                <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                  <div className="h-full bg-cyan-400 transition-all duration-300" style={{ width: `${voteProgress}%` }}></div>
+                <div className="w-full bg-[#edf1ed] h-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-ink transition-all duration-300" style={{ width: `${voteProgress}%` }}></div>
                 </div>
               </div>
             )}
@@ -314,7 +314,7 @@ export const AnonymousGovernance: React.FC<AnonymousGovernanceProps> = ({
             <Button variant="outline" disabled={isVoting} onClick={() => setSelectedPoll(null)}>
               Cancel
             </Button>
-            <Button variant="cyan" disabled={isVoting} onClick={handleExecuteVote}>
+            <Button disabled={isVoting} onClick={handleExecuteVote} type="submit">
               Confirm Vote
             </Button>
           </DialogFooter>

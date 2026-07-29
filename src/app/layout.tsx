@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Manrope, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { LaceWalletProvider } from "@/lib/lace-wallet-context";
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-manrope",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const dmMono = DM_Mono({
+  weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-mono",
 });
@@ -26,9 +27,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
+      className={`${manrope.variable} ${dmMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#070913] text-slate-100 font-sans selection:bg-purple-500 selection:text-white">
+      <body className="min-h-full flex flex-col bg-[#f8faf7] text-[#17211b] font-sans">
         <LaceWalletProvider>{children}</LaceWalletProvider>
       </body>
     </html>

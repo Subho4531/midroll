@@ -83,135 +83,136 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Overview Banner */}
-      <Card className="border-indigo-900/40 bg-slate-950/90 shadow-2xl relative overflow-hidden">
-        <CardHeader className="p-6 sm:p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-            <div>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">
-                <Building2 className="w-4 h-4 text-cyan-400" />
-                <span>Corporate HR Treasury & Shielded Compliance</span>
-              </div>
-              <CardTitle className="text-3xl font-extrabold text-white">
-                TechCorp <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">Midnight HR Portal</span>
-              </CardTitle>
-              <CardDescription className="text-sm text-slate-300 mt-1 max-w-xl">
-                Confidential payroll distribution powered by Compact zero-knowledge smart state.
-              </CardDescription>
-            </div>
+      <div className="card hero relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div>
+            <div className="eyebrow text-[#aebbb2] mb-2 font-mono">Corporate HR Treasury & Shielded Compliance</div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight" style={{ color: 'white' }}>
+              TechCorp Midnight HR Portal
+            </h1>
+            <p className="text-sm text-[#aebbb2] mt-2 max-w-xl">
+              Confidential payroll distribution powered by Compact zero-knowledge smart state.
+            </p>
+          </div>
 
-            <div className="flex items-center space-x-3 shrink-0">
-              <Button variant="cyan" size="lg" onClick={() => setIsDepositModalOpen(true)} className="gap-2">
-                <Layers className="w-4 h-4" />
-                <span>Deposit Shielded Batch</span>
-              </Button>
+          <div className="flex items-center space-x-3 shrink-0">
+            <button
+              onClick={() => setIsDepositModalOpen(true)}
+              className="new shrink-0"
+              style={{ background: 'var(--lime)', color: 'var(--ink)' }}
+            >
+              <Layers className="w-4 h-4" />
+              <span>Deposit Shielded Batch</span>
+            </button>
 
-              <Button variant="secondary" size="lg" onClick={() => setIsAddWorkerModalOpen(true)} className="gap-2">
-                <Plus className="w-4 h-4 text-cyan-400" />
-                <span>Add Worker</span>
-              </Button>
+            <button
+              onClick={() => setIsAddWorkerModalOpen(true)}
+              className="new shrink-0"
+              style={{ background: 'white', color: 'var(--ink)' }}
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Worker</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-white/10 relative z-10">
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
+            <div className="text-[10px] uppercase font-mono text-[#aebbb2] tracking-wider">Shielded Treasury Commitment</div>
+            <div className="text-xl font-bold text-white font-mono">{formatUSD(treasuryBalanceUSD)}</div>
+            <div className="text-[10px] text-emerald-300 font-mono flex items-center gap-1">
+              <Lock className="w-3 h-3" /> Shielded Balance
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-indigo-900/40">
-            <div className="bg-slate-900/80 p-4 rounded-2xl border border-indigo-900/40 space-y-1">
-              <div className="text-xs text-slate-400">Shielded Treasury Commitment</div>
-              <div className="text-2xl font-bold text-white font-mono">{formatUSD(treasuryBalanceUSD)}</div>
-              <div className="text-[11px] text-cyan-400 flex items-center gap-1">
-                <Lock className="w-3 h-3" /> Shielded Balance
-              </div>
-            </div>
-
-            <div className="bg-slate-900/80 p-4 rounded-2xl border border-indigo-900/40 space-y-1">
-              <div className="text-xs text-slate-400">Total Monthly Payroll Rate</div>
-              <div className="text-2xl font-bold text-cyan-300 font-mono">{formatUSD(totalMonthlyPayroll)}</div>
-              <div className="text-[11px] text-slate-400">across {employees.length} employees</div>
-            </div>
-
-            <div className="bg-slate-900/80 p-4 rounded-2xl border border-indigo-900/40 space-y-1">
-              <div className="text-xs text-slate-400">Estimated ZK Tax Withholding</div>
-              <div className="text-2xl font-bold text-amber-400 font-mono">{formatUSD(estimatedTaxWithheld)}</div>
-              <div className="text-[11px] text-amber-300/80">ZKP Tax Remittance Ready</div>
-            </div>
-
-            <div className="bg-slate-900/80 p-4 rounded-2xl border border-indigo-900/40 space-y-1">
-              <div className="text-xs text-slate-400">PayFlow Velocity</div>
-              <div className="text-2xl font-bold text-emerald-400 font-mono">
-                ${(totalMonthlyPayroll / (30 * 24 * 3600)).toFixed(4)}/sec
-              </div>
-              <div className="text-[11px] text-emerald-400">Real-time Stream Active</div>
-            </div>
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
+            <div className="text-[10px] uppercase font-mono text-[#aebbb2] tracking-wider">Total Monthly Payroll Rate</div>
+            <div className="text-xl font-bold text-[#d7ff65] font-mono">{formatUSD(totalMonthlyPayroll)}</div>
+            <div className="text-[10px] text-[#aebbb2] font-mono">across {employees.length} employees</div>
           </div>
-        </CardHeader>
-      </Card>
+
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
+            <div className="text-[10px] uppercase font-mono text-[#aebbb2] tracking-wider">Estimated ZK Tax Withholding</div>
+            <div className="text-xl font-bold text-[#ffdbda] font-mono">{formatUSD(estimatedTaxWithheld)}</div>
+            <div className="text-[10px] text-[#ffdbda]/80 font-mono">ZKP Tax Remittance Ready</div>
+          </div>
+
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
+            <div className="text-[10px] uppercase font-mono text-[#aebbb2] tracking-wider">PayFlow Velocity</div>
+            <div className="text-xl font-bold text-[#ddd3ff] font-mono">
+              ${(totalMonthlyPayroll / (30 * 24 * 3600)).toFixed(4)}/sec
+            </div>
+            <div className="text-[10px] text-[#ddd3ff] font-mono">Real-time Stream Active</div>
+          </div>
+        </div>
+        <div className="orb"></div>
+      </div>
 
       {/* Roster Table Card */}
-      <Card className="border-indigo-900/40">
-        <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card">
+        <div className="card-head pb-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle className="text-lg text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-cyan-400" />
-              <span>Confidential Employee Roster</span>
-            </CardTitle>
-            <CardDescription>Salaries and identities protected via client-side viewing keys</CardDescription>
+            <h2>Confidential Employee Roster</h2>
+            <p className="text-xs text-muted mt-1">Salaries and identities protected via client-side viewing keys</p>
           </div>
-          <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
-            <Filter className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#eef4ee] border border-line text-ink">
+            <Filter className="w-3.5 h-3.5 text-ink" />
             <span>Department: All</span>
-          </Badge>
-        </CardHeader>
+          </span>
+        </div>
 
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-indigo-900/40 text-xs text-slate-400 uppercase tracking-wider">
-                  <th className="pb-3 font-semibold">Employee</th>
-                  <th className="pb-3 font-semibold">Department</th>
-                  <th className="pb-3 font-semibold">Monthly Pay</th>
-                  <th className="pb-3 font-semibold">Stream Status</th>
-                  <th className="pb-3 font-semibold">Viewing Key</th>
-                  <th className="pb-3 font-semibold text-right">Actions</th>
+        <div className="overflow-x-auto mt-4">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-line text-xs text-muted uppercase tracking-wider font-mono">
+                <th className="pb-3 font-semibold">Employee</th>
+                <th className="pb-3 font-semibold">Department</th>
+                <th className="pb-3 font-semibold">Monthly Pay</th>
+                <th className="pb-3 font-semibold">Stream Status</th>
+                <th className="pb-3 font-semibold">Viewing Key</th>
+                <th className="pb-3 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line text-ink">
+              {employees.map((emp) => (
+                <tr key={emp.id} className="hover:bg-[#fbfcfa] transition">
+                  <td className="py-4 pr-4">
+                    <div className="font-bold text-ink">{emp.name}</div>
+                    <div className="text-xs text-muted">{emp.role}</div>
+                  </td>
+                  <td className="py-4">
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f0efff] border border-[#ddd3ff] text-[#4f46e5]">
+                      {emp.department}
+                    </span>
+                  </td>
+                  <td className="py-4 font-mono font-semibold text-ink">
+                    {formatUSD(emp.salaryMonthly)}
+                  </td>
+                  <td className="py-4">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#c6f6d5] border border-[#a3e9b9] text-[#1c6434]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Streaming
+                    </span>
+                  </td>
+                  <td className="py-4 text-xs font-mono text-muted">
+                    {emp.viewingKey.substring(0, 16)}...
+                  </td>
+                  <td className="py-4 text-right">
+                    <button
+                      onClick={() => alert(`Viewing Key hash for ${emp.name}:\n${emp.viewingKey}\n\nShielded Address:\n${emp.shieldedAddress}`)}
+                      className="new py-1.5 px-3 text-xs bg-[#eef4ee] border border-line text-ink font-semibold"
+                      style={{ background: 'white', color: 'var(--ink)', border: '1px solid var(--line)', padding: '6px 12px' }}
+                    >
+                      Audit Key
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-indigo-900/30 text-slate-200">
-                {employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-slate-900/50 transition">
-                    <td className="py-4 pr-4">
-                      <div className="font-bold text-white">{emp.name}</div>
-                      <div className="text-xs text-slate-400">{emp.role}</div>
-                    </td>
-                    <td className="py-4">
-                      <Badge variant="secondary">{emp.department}</Badge>
-                    </td>
-                    <td className="py-4 font-mono font-semibold text-cyan-300">
-                      {formatUSD(emp.salaryMonthly)}
-                    </td>
-                    <td className="py-4">
-                      <Badge variant="emerald">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Streaming
-                      </Badge>
-                    </td>
-                    <td className="py-4 text-xs font-mono text-slate-400">
-                      {emp.viewingKey.substring(0, 16)}...
-                    </td>
-                    <td className="py-4 text-right">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => alert(`Viewing Key hash for ${emp.name}:\n${emp.viewingKey}\n\nShielded Address:\n${emp.shieldedAddress}`)}
-                      >
-                        Audit Key
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Deposit Modal */}
       <Dialog open={isDepositModalOpen} onOpenChange={setIsDepositModalOpen}>
@@ -225,7 +226,7 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
 
           <div className="space-y-4 my-2">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Deposit Amount (USDC-M)</label>
+              <label className="block text-xs font-semibold text-muted mb-1.5 font-mono">Deposit Amount (USDC-M)</label>
               <Input
                 type="number"
                 value={depositAmount}
@@ -239,7 +240,7 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
             <Button variant="outline" onClick={() => setIsDepositModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="cyan" disabled={isDepositing} onClick={handleExecuteDeposit}>
+            <Button disabled={isDepositing} onClick={handleExecuteDeposit} type="submit">
               {isDepositing ? 'Depositing...' : 'Confirm Deposit'}
             </Button>
           </DialogFooter>
@@ -256,7 +257,7 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
 
           <form onSubmit={handleCreateWorker} className="space-y-4 my-2">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+              <label className="block text-xs font-semibold text-muted mb-1.5 font-mono">Full Name</label>
               <Input
                 type="text"
                 required
@@ -267,7 +268,7 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Role Title</label>
+              <label className="block text-xs font-semibold text-muted mb-1.5 font-mono">Role Title</label>
               <Input
                 type="text"
                 required
@@ -279,11 +280,11 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Department</label>
+                <label className="block text-xs font-semibold text-muted mb-1.5 font-mono">Department</label>
                 <select
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-indigo-900/50 bg-slate-950 px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  className="flex h-11 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-ink/20"
                 >
                   <option value="Engineering">Engineering</option>
                   <option value="Zero-Knowledge R&D">Zero-Knowledge R&D</option>
@@ -293,7 +294,7 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Monthly Pay (USD)</label>
+                <label className="block text-xs font-semibold text-muted mb-1.5 font-mono">Monthly Pay (USD)</label>
                 <Input
                   type="number"
                   required
@@ -308,7 +309,7 @@ export const EmployerPortal: React.FC<EmployerPortalProps> = ({
               <Button type="button" variant="outline" onClick={() => setIsAddWorkerModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" variant="purple">
+              <Button type="submit">
                 Enroll Worker
               </Button>
             </DialogFooter>
