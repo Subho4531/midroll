@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, CreditCard, Vote, Building2, FileCode, Wallet, CheckCircle2 } from 'lucide-react';
+import { Shield, CreditCard, Vote, Building2, FileCode, Wallet, CheckCircle2, Home } from 'lucide-react';
 import { useLaceWallet } from '@/lib/lace-wallet-context';
 import { LaceWalletModal } from '@/components/LaceWalletModal';
 
-export type ActiveTab = 'expenses' | 'governance' | 'employer' | 'contract';
+export type ActiveTab = 'overview' | 'expenses' | 'governance' | 'employer' | 'contract';
 
 interface HeaderProps {
   activeTab: ActiveTab;
@@ -28,13 +28,13 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
   return (
     <>
       <aside className="sidebar">
-        {/* Brand */}
-        <div className="brand cursor-pointer" onClick={() => setActiveTab('expenses')}>
+        {/* Brand logo */}
+        <div className="brand cursor-pointer" onClick={() => setActiveTab('overview')}>
           <span className="mark"></span>
           MidRoll
         </div>
 
-        {/* Network / Workspace Selection */}
+        {/* Network / Workspace switcher */}
         <div className="workspace">
           <button onClick={() => setIsWalletModalOpen(true)}>
             {isConnected ? `${network.toUpperCase()} Network` : 'Orbit Labs'}
@@ -42,9 +42,20 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
           </button>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation links */}
         <nav className="nav">
           <h4>Workspace</h4>
+          <a
+            href="#overview"
+            className={activeTab === 'overview' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('overview');
+            }}
+          >
+            <i className="dot"></i>
+            Overview Hub
+          </a>
           <a
             href="#expenses"
             className={activeTab === 'expenses' ? 'active' : ''}
@@ -93,17 +104,17 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
           </a>
         </nav>
 
-        {/* Bottom User Area */}
+        {/* User profile connection indicator */}
         <div className="bottom cursor-pointer" onClick={handleProfileClick}>
           <div className="person">
             <div className="avatar bg-[#ddd3ff] font-extrabold text-[#17211b]">
               {isConnected ? 'SA' : '??'}
             </div>
             <div>
-              <b className="truncate max-w-[120px]">
+              <b className="truncate max-w-[120px] text-white">
                 {isConnected ? formatShortAddr(walletAddress) : 'Connect Lace'}
               </b>
-              <small>
+              <small className="text-slate-400">
                 {isConnected ? `${tDustBalance.toLocaleString()} tDUST` : 'Not Connected'}
               </small>
             </div>
