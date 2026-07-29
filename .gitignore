@@ -13,3 +13,9 @@ dist/
 mn-demo/
 
 midnight-level-db/
+/src/generated/prisma
+.agents/
+.claude/
+.windsurf/
+*.tsbuildinfo
+skills-lock.json
