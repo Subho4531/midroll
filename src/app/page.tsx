@@ -16,7 +16,8 @@ import {
   INITIAL_POLLS,
   INITIAL_WHISTLEBLOWER_REPORTS,
 } from '@/lib/midroll-zk';
-import { Shield } from 'lucide-react';
+import { Shield, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('expenses');
@@ -27,8 +28,6 @@ export default function Home() {
   const [polls, setPolls] = useState<GovernancePoll[]>(INITIAL_POLLS);
   const [whistleblowerReports, setWhistleblowerReports] = useState<WhistleblowerReport[]>(INITIAL_WHISTLEBLOWER_REPORTS);
   
-  const [walletBalance, setWalletBalance] = useState<number>(128400.50);
-  const [tDustBalance, setTDustBalance] = useState<number>(42500);
   const [treasuryBalance, setTreasuryBalance] = useState<number>(450000);
 
   const handleAddEmployee = (newEmp: Employee) => {
@@ -37,18 +36,16 @@ export default function Home() {
 
   const handleDepositTreasury = (amountUSD: number) => {
     setTreasuryBalance((prev) => prev + amountUSD);
-    setWalletBalance((prev) => Math.max(0, prev - amountUSD));
   };
 
   const handleAddReceipt = (newRec: ExpenseReceipt) => {
     setReceipts((prev) => [newRec, ...prev]);
   };
 
-  const handleReimburse = (receiptId: string, amountUSD: number) => {
+  const handleReimburse = (receiptId: string) => {
     setReceipts((prev) =>
       prev.map((r) => (r.id === receiptId ? { ...r, zkProofStatus: 'REIMBURSED' } : r))
     );
-    setWalletBalance((prev) => prev + amountUSD);
   };
 
   const handleCastVote = (pollId: string, optionIndex: number) => {
@@ -75,14 +72,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070913] text-slate-100 flex flex-col selection:bg-purple-500 selection:text-black">
+    <div className="min-h-screen bg-[#070913] text-slate-100 flex flex-col selection:bg-purple-500 selection:text-white">
       
-      {/* Navigation Bar */}
+      {/* Navigation Header */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        walletBalance={walletBalance}
-        tDustBalance={tDustBalance}
       />
 
       {/* Main Content Area */}
@@ -117,7 +112,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-indigo-900/30 glass-panel bg-slate-950/80 py-8 mt-12">
+      <footer className="border-t border-indigo-900/40 bg-slate-950/90 backdrop-blur-xl py-8 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div className="flex items-center space-x-2">
             <Shield className="w-4 h-4 text-purple-400" />
@@ -125,10 +120,10 @@ export default function Home() {
             <span>&bull; Built for Midnight Blockchain (Rise In Challenge Level 1)</span>
           </div>
 
-          <div className="flex items-center space-x-6 text-slate-400">
-            <span>Feature 5: Shielded Expenses</span>
-            <span>Feature 6: Anonymous Governance</span>
-            <span>Compact DSL Smart State</span>
+          <div className="flex items-center space-x-4">
+            <Badge variant="outline" className="text-[11px]">Feature 5: Shielded Expenses</Badge>
+            <Badge variant="outline" className="text-[11px]">Feature 6: Anonymous Governance</Badge>
+            <Badge variant="cyan" className="text-[11px]">Compact DSL v0.23</Badge>
           </div>
         </div>
       </footer>
