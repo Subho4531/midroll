@@ -11,212 +11,175 @@ export interface LaceWalletState {
   shieldedAddress: string | null;
   tNightBalance: number;
   tDustBalance: number;
+  shieldedBalance: number;
   network: MidnightNetwork;
-  isSimulatedMode: boolean;
   isLaceInstalled: boolean;
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => void;
   setNetwork: (net: MidnightNetwork) => void;
-  toggleSimulatedMode: (enabled?: boolean) => void;
+  transferDust: (amount: number) => Promise<void>;
+  transferShielded: (amount: number) => Promise<void>;
+  connectedApi: any | null;
 }
 
 const LaceWalletContext = createContext<LaceWalletState | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'midroll_lace_wallet_state';
+const LOCAL_STORAGE_KEY = 'midroll_lace_wallet_state_v2';
+
+// Helper: find the Lace wallet in window.midnight
+const findLaceWallet = (): any | null => {
+  if (typeof window === 'undefined') return null;
+  const win = window as any;
+  if (!win.midnight) return null;
+  // Prefer the known Midnight Lace key
+  if (win.midnight.mnLace) return win.midnight.mnLace;
+  if (win.midnight.lace) return win.midnight.lace;
+  // CAIP-372 UUID keys — find by name/rdns
+  const wallets = Object.values(win.midnight) as any[];
+  return wallets.find(
+    (w) => w?.name?.toLowerCase().includes('lace') || w?.rdns?.toLowerCase().includes('lace')
+  ) || wallets[0] || null;
+};
 
 export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [shieldedAddress, setShieldedAddress] = useState<string | null>(null);
-  const [tNightBalance, setTNightBalance] = useState<number>(250000);
-  const [tDustBalance, setTDustBalance] = useState<number>(42500);
+  const [tNightBalance, setTNightBalance] = useState<number>(0);
+  const [tDustBalance, setTDustBalance] = useState<number>(0);
+  const [shieldedBalance, setShieldedBalance] = useState<number>(0);
   const [network, setNetworkState] = useState<MidnightNetwork>('preview');
-  const [isSimulatedMode, setIsSimulatedMode] = useState(true);
   const [isLaceInstalled, setIsLaceInstalled] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connectedApi, setConnectedApi] = useState<any | null>(null);
 
-  // Check if Midnight / Cardano Lace wallet connectors are present in window
+  // Poll for Lace extension presence every second
   useEffect(() => {
-    const checkLacePresence = () => {
-      if (typeof window === 'undefined') return;
-      
-      const win = window as any;
-      const hasMidnightWallets = win.midnight && Object.keys(win.midnight).length > 0;
-      const hasCardanoLace = win.cardano?.lace;
-      const hasLace = Boolean(hasMidnightWallets || hasCardanoLace);
-      
-      setIsLaceInstalled(hasLace);
-      
-      // Auto-toggle simulated mode off if a real wallet is detected for the first time
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (hasLace && !saved) {
-        setIsSimulatedMode(false);
-      }
+    const check = () => {
+      const lace = findLaceWallet();
+      setIsLaceInstalled(!!lace);
     };
-
-    checkLacePresence();
-    const interval = setInterval(checkLacePresence, 1000);
-    return () => clearInterval(interval);
+    check();
+    const id = setInterval(check, 1000);
+    return () => clearInterval(id);
   }, []);
 
-  // Load initial state from localStorage
+  // Restore network preference from localStorage only
   useEffect(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.isConnected) {
-          setIsConnected(true);
-          setWalletAddress(parsed.walletAddress || 'mn_addr_preview1q9z3u...8k9u7s');
-          setShieldedAddress(parsed.shieldedAddress || '0xmid_shield_8829a1f');
-          setTNightBalance(parsed.tNightBalance || 250000);
-          setTDustBalance(parsed.tDustBalance || 42500);
-          setNetworkState(parsed.network || 'preview');
-          setIsSimulatedMode(parsed.isSimulatedMode ?? false);
-        }
+        setNetworkState(parsed.network || 'preview');
       }
     } catch (e) {
-      console.error('Failed to load wallet state:', e);
+      // ignore
     }
   }, []);
 
-  // Save to localStorage when state updates
+  // Persist only network preference
   useEffect(() => {
-    if (isConnected) {
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify({
-          isConnected,
-          walletAddress,
-          shieldedAddress,
-          tNightBalance,
-          tDustBalance,
-          network,
-          isSimulatedMode,
-        })
-      );
-    } else {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ network }));
+    } catch (e) {
+      // ignore
     }
-  }, [isConnected, walletAddress, shieldedAddress, tNightBalance, tDustBalance, network, isSimulatedMode]);
+  }, [network]);
 
   const connect = async () => {
     setIsConnecting(true);
     setError(null);
 
     try {
-      const win = window as any;
-      let laceWallet: any = null;
+      const laceWallet = findLaceWallet();
 
-      // 1. Check window.midnight for injected wallets
-      if (win.midnight) {
-        if (win.midnight.mnLace) {
-          laceWallet = win.midnight.mnLace;
-        } else if (win.midnight.lace) {
-          laceWallet = win.midnight.lace;
-        } else {
-          // Enumerate to support CAIP-372 UUID keys
-          const wallets = Object.values(win.midnight);
-          laceWallet = wallets.find(
-            (w: any) => w.name?.toLowerCase().includes('lace') || w.rdns?.toLowerCase().includes('lace')
-          ) || wallets[0];
-        }
+      if (!laceWallet) {
+        throw new Error(
+          'Lace wallet extension not found. Please install the Midnight Lace extension and refresh.'
+        );
       }
 
-      // 2. Fallback to window.cardano.lace (some older extension versions)
-      if (!laceWallet && win.cardano?.lace) {
-        laceWallet = win.cardano.lace;
-      }
-
-      if (laceWallet && !isSimulatedMode) {
-        // Handshake: supports connect(networkId) OR enable()
-        let connectedApi: any = null;
-        if (typeof laceWallet.connect === 'function') {
-          connectedApi = await laceWallet.connect(network);
-        } else if (typeof laceWallet.enable === 'function') {
-          connectedApi = await laceWallet.enable();
-        } else {
-          throw new Error("Found Lace wallet but it does not support connection handshake methods.");
-        }
-
-        if (!connectedApi) {
-          throw new Error("Lace wallet handshake did not return a valid API interface.");
-        }
-        
-        // Fetch addresses safely with individual try-catch blocks to prevent breaking
-        let unshieldedAddress = 'mn_addr_unshielded_connected';
-        try {
-          if (typeof connectedApi.getUnshieldedAddress === 'function') {
-            const res = await connectedApi.getUnshieldedAddress();
-            unshieldedAddress = res?.unshieldedAddress || res || 'mn_addr_unshielded_connected';
-          } else if (typeof connectedApi.getChangeAddress === 'function') {
-            unshieldedAddress = await connectedApi.getChangeAddress();
-          }
-        } catch (e: any) {
-          console.warn('Failed to fetch unshielded address:', e);
-        }
-
-        let shieldedAddress = '0xmid_shield_connected';
-        try {
-          if (typeof connectedApi.getShieldedAddresses === 'function') {
-            const res = await connectedApi.getShieldedAddresses();
-            shieldedAddress = res?.shieldedAddress || res || '0xmid_shield_connected';
-          }
-        } catch (e: any) {
-          console.warn('Failed to fetch shielded address:', e);
-        }
-        
-        let dustBalanceVal = 42500;
-        try {
-          if (typeof connectedApi.getDustBalance === 'function') {
-            const res = await connectedApi.getDustBalance();
-            if (res) {
-              dustBalanceVal = typeof res.balance !== 'undefined' ? Number(res.balance) : Number(res);
-            }
-          }
-        } catch (e: any) {
-          console.warn('Failed to fetch DUST balance:', e);
-        }
-
-        let tNightBalanceVal = 250000;
-        try {
-          if (typeof connectedApi.getUnshieldedBalances === 'function') {
-            const res = await connectedApi.getUnshieldedBalances();
-            if (res) {
-              const vals = Object.values(res);
-              if (vals.length > 0) {
-                tNightBalanceVal = Number(vals[0]);
-              }
-            }
-          }
-        } catch (e: any) {
-          console.warn('Failed to fetch tNIGHT balance:', e);
-        }
-
-        setWalletAddress(unshieldedAddress);
-        setShieldedAddress(shieldedAddress);
-        setTDustBalance(dustBalanceVal);
-        setTNightBalance(tNightBalanceVal);
-        setIsConnected(true);
+      // Connect — this triggers the Lace unlock/authorize popup if wallet is locked
+      let api: any;
+      if (typeof laceWallet.connect === 'function') {
+        api = await laceWallet.connect(network);
+      } else if (typeof laceWallet.enable === 'function') {
+        api = await laceWallet.enable();
       } else {
-        // Simulated connection
-        await new Promise((r) => setTimeout(r, 800));
-        
-        const mockAddress = network === 'preview' 
-          ? 'mn_addr_preview1h3ssm5ru2t6eqy4g3she78zlxn96e36ms6pq996aduvmateh9p9sk96u7s'
-          : network === 'devnet'
-          ? 'mn_addr_undeployed1h3ssm5ru2t6eqy4g3she78zlxn96e36ms6pq996aduvmateh9p9sk96u7s'
-          : 'mn_addr_preprod1h3ssm5ru2t6eqy4g3she78zlxn96e36ms6pq996aduvmateh9p9sk96u7s';
-
-        setWalletAddress(mockAddress);
-        setShieldedAddress('0xmid_shield_85dd06179800830b2d181f3238ecf3b94a0ae820bcc62953e50c0f9d26743a7d');
-        setIsConnected(true);
+        throw new Error('Lace wallet does not expose a connect() or enable() method.');
       }
+
+      if (!api) {
+        throw new Error('Lace wallet returned no API. The connection was rejected or timed out.');
+      }
+
+      // Verify wallet is actually unlocked by fetching the unshielded address.
+      // This will throw "Wallet is locked" if the user hasn't unlocked yet.
+      const addrRes = await api.getUnshieldedAddress();
+      const unshieldedAddress = addrRes?.unshieldedAddress ?? addrRes ?? null;
+      if (!unshieldedAddress) {
+        throw new Error('Could not read wallet address. Please ensure your wallet is unlocked.');
+      }
+
+      // Fetch shielded address
+      let shield: string | null = null;
+      try {
+        const shRes = await api.getShieldedAddresses();
+        shield = shRes?.shieldedAddress ?? null;
+      } catch (e: any) {
+        console.warn('getShieldedAddresses failed:', e.message);
+      }
+
+      // Fetch DUST balance
+      let dust = 0;
+      try {
+        const dustRes = await api.getDustBalance();
+        const raw = dustRes?.balance !== undefined ? Number(dustRes.balance) : Number(dustRes);
+        dust = raw / 1_000_000_000;
+      } catch (e: any) {
+        console.warn('getDustBalance failed:', e.message);
+      }
+
+      // Fetch tNIGHT (unshielded) balance
+      let tNight = 0;
+      try {
+        const unshieldedBals = await api.getUnshieldedBalances();
+        const vals = Object.values(unshieldedBals || {});
+        if (vals.length > 0) tNight = Number(vals[0]) / 1_000_000;
+      } catch (e: any) {
+        console.warn('getUnshieldedBalances failed:', e.message);
+      }
+
+      // Fetch shielded balance
+      let shieldedBal = 0;
+      try {
+        const shieldedBals = await api.getShieldedBalances();
+        const vals = Object.values(shieldedBals || {});
+        if (vals.length > 0) shieldedBal = Number(vals[0]) / 1_000_000;
+      } catch (e: any) {
+        console.warn('getShieldedBalances failed:', e.message);
+      }
+
+      setConnectedApi(api);
+      setWalletAddress(unshieldedAddress);
+      setShieldedAddress(shield);
+      setTDustBalance(dust);
+      setTNightBalance(tNight);
+      setShieldedBalance(shieldedBal);
+      setIsConnected(true);
     } catch (err: any) {
-      console.error('Lace wallet connection error:', err);
-      setError(err?.message || 'User rejected Lace wallet connection attempt.');
+      const msg: string = err?.message || String(err);
+      // Surface locked wallet error clearly in the UI
+      if (msg.toLowerCase().includes('locked')) {
+        setError('Wallet is locked. Please click the Lace extension icon and unlock it first.');
+      } else if (msg.toLowerCase().includes('rejected') || msg.toLowerCase().includes('user denied')) {
+        setError('Connection rejected. Please approve the connection in the Lace wallet popup.');
+      } else {
+        setError(msg);
+      }
+      console.error('Lace connect error:', err);
     } finally {
       setIsConnecting(false);
     }
@@ -224,26 +187,29 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const disconnect = () => {
     setIsConnected(false);
+    setConnectedApi(null);
     setWalletAddress(null);
     setShieldedAddress(null);
+    setTNightBalance(0);
+    setTDustBalance(0);
+    setShieldedBalance(0);
     setError(null);
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
   };
 
   const setNetwork = (net: MidnightNetwork) => {
     setNetworkState(net);
-    if (isConnected && walletAddress) {
-      if (walletAddress.startsWith('mn_addr_')) {
-        const parts = walletAddress.split('1');
-        if (parts.length > 1) {
-          setWalletAddress(`mn_addr_${net}1${parts[1]}`);
-        }
-      }
+    // If connected, disconnect so user has to reconnect on the new network
+    if (isConnected) {
+      disconnect();
     }
   };
 
-  const toggleSimulatedMode = (enabled?: boolean) => {
-    setIsSimulatedMode((prev) => (enabled !== undefined ? enabled : !prev));
+  const transferDust = async (amount: number) => {
+    setTDustBalance((prev) => Math.max(0, prev - amount));
+  };
+
+  const transferShielded = async (amount: number) => {
+    setShieldedBalance((prev) => Math.max(0, prev - amount));
   };
 
   return (
@@ -255,14 +221,16 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         shieldedAddress,
         tNightBalance,
         tDustBalance,
+        shieldedBalance,
         network,
-        isSimulatedMode,
         isLaceInstalled,
         error,
         connect,
         disconnect,
         setNetwork,
-        toggleSimulatedMode,
+        transferDust,
+        transferShielded,
+        connectedApi,
       }}
     >
       {children}
