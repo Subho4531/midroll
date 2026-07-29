@@ -7,8 +7,9 @@ import { AnonymousGovernance } from '@/components/AnonymousGovernance';
 import { EmployerPortal } from '@/components/EmployerPortal';
 import { CompactContractViewer } from '@/components/CompactContractViewer';
 import { WalletConnect } from '@/components/WalletConnect';
-import { CircuitCall } from '@/components/CircuitCall';
 import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { ContactsPage } from '@/components/ContactsPage';
+import { PaymentDispatcher } from '@/components/PaymentDispatcher';
 import {
   Employee,
   ExpenseReceipt,
@@ -19,13 +20,13 @@ import {
   INITIAL_POLLS,
   INITIAL_WHISTLEBLOWER_REPORTS,
 } from '@/lib/midroll-zk';
-import { Shield, Sparkles, AlertCircle, Info, Clock, CheckCircle2, History, RefreshCw } from 'lucide-react';
+import { Shield, Sparkles, AlertCircle, Info, Clock, CheckCircle2, History, RefreshCw, Wallet, Menu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
-  const { isConnected, walletAddress, network } = useLaceWallet();
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const { isConnected, walletAddress, network, connect, isConnecting, tNightBalance, tDustBalance, shieldedBalance } = useLaceWallet();
   
   // App state
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
@@ -34,6 +35,24 @@ export default function App() {
   const [whistleblowerReports, setWhistleblowerReports] = useState<WhistleblowerReport[]>(INITIAL_WHISTLEBLOWER_REPORTS);
   
   const [treasuryBalance, setTreasuryBalance] = useState<number>(450000);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [protocolLogs, setProtocolLogs] = useState([
+    { id: '1', status: 'success', title: 'Wallet context initialized', subtitle: 'CAIP-372 Handshake Active', time: 'Just now' },
+    { id: '2', status: 'info', title: 'ZKP circuits compiled', subtitle: 'Compact schema verified', time: '12m' },
+    { id: '3', status: 'info', title: 'Mock treasury funded', subtitle: '$450,000 USD secured', time: '1h' },
+  ]);
+
+  const logCounter = React.useRef(100);
+
+  const handleAddLog = (title: string, subtitle = 'Verification lock active') => {
+    logCounter.current += 1;
+    setProtocolLogs((prev) => [
+      { id: String(logCounter.current), status: 'success', title, subtitle, time: 'Just now' },
+      ...prev,
+    ]);
+  };
+
+  const totalTxns = receipts.length + protocolLogs.filter(log => log.title.toLowerCase().includes('tx') || log.title.toLowerCase().includes('success') || log.title.toLowerCase().includes('dispatched') || log.title.toLowerCase().includes('confirmed')).length + 5;
 
   const handleAddEmployee = (newEmp: Employee) => {
     setEmployees((prev) => [...prev, newEmp]);
@@ -76,6 +95,14 @@ export default function App() {
     setWhistleblowerReports((prev) => [report, ...prev]);
   };
 
+  const formatBalance = (val: number) => {
+    let cleanVal = val;
+    if (val > 10000000) {
+      cleanVal = val / 1_000_000;
+    }
+    return cleanVal.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  };
+
   const formatUSD = (val: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -91,37 +118,71 @@ export default function App() {
     return 'Good evening';
   };
 
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-[var(--paper)] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Light background decorative blobs */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--violet)]/10 blur-[120px] rounded-full pointer-events-none"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[var(--lime)]/10 blur-[120px] rounded-full pointer-events-none"></div>
+        
+        <div className="z-10 max-w-md w-full text-center space-y-8">
+          <div className="space-y-4">
+            <div className="inline-flex items-center justify-center p-4 bg-white border border-[var(--line)] rounded-2xl shadow-sm mb-2">
+              <Shield className="w-10 h-10 text-[var(--ink)]" />
+            </div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-[var(--ink)] letter-spacing-tight">
+              MidRoll Protocol
+            </h1>
+            <p className="text-[var(--muted)] text-sm max-w-[320px] mx-auto leading-relaxed">
+              Zero-knowledge payroll distribution and shielded treasury management on the Midnight Network.
+            </p>
+          </div>
+          
+          <div className="pt-2">
+            <WalletConnect />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="shell min-h-screen bg-[#f8faf7] text-[#17211b] selection:bg-purple-500 selection:text-white">
+    <div className={`shell ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} min-h-screen bg-[#f8faf7] text-[#17211b] selection:bg-purple-500 selection:text-white`}>
       
       {/* Left Sidebar Navigation */}
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Header 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+      />
 
       {/* Right Main Panel */}
       <main className="main">
         {/* Top Control Bar */}
         <header className="top">
-          <div className="crumb text-[10px] tracking-wider uppercase font-mono text-slate-400">
-            MIDROLL PROTOCOL / {activeTab.toUpperCase()}
+          <div className="flex items-center gap-3">
+            {isSidebarCollapsed && (
+              <button 
+                onClick={() => setIsSidebarCollapsed(false)}
+                className="icon-btn flex items-center justify-center transition hover:bg-slate-100"
+                title="Expand Sidebar"
+              >
+                <Menu className="w-4 h-4 text-ink" />
+              </button>
+            )}
+            <div className="crumb text-[10px] tracking-wider uppercase font-mono text-slate-400">
+              MIDROLL PROTOCOL / {activeTab.toUpperCase()}
+            </div>
           </div>
           <div className="top-actions">
+            {/* Primary Connect Wallet Button in Header (when connected, maybe shows address and disconnect) */}
+            <button className="new flex items-center gap-2" onClick={() => window.dispatchEvent(new CustomEvent('open-wallet-modal'))}>
+              <Wallet className="w-4 h-4" />
+              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}` : 'Connect Wallet'}
+            </button>
             <button className="icon-btn flex items-center justify-center font-bold text-slate-500 hover:text-slate-900 border border-slate-200 bg-white rounded-lg shadow-sm hover:shadow transition" aria-label="Search">⌕</button>
             <button className="icon-btn flex items-center justify-center font-bold text-slate-500 hover:text-slate-900 border border-slate-200 bg-white rounded-lg shadow-sm hover:shadow transition" aria-label="Notifications">◌</button>
-            {activeTab === 'expenses' && (
-              <button className="new" onClick={() => setActiveTab('expenses')}>
-                + File Expense
-              </button>
-            )}
-            {activeTab === 'employer' && (
-              <button className="new" onClick={() => setActiveTab('employer')}>
-                + Register Worker
-              </button>
-            )}
-            {activeTab === 'overview' && (
-              <button className="new" onClick={() => setActiveTab('contract')}>
-                View Compact Schema
-              </button>
-            )}
           </div>
         </header>
 
@@ -132,67 +193,65 @@ export default function App() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-[#17211b] mt-1">
-              {getGreeting()}, {isConnected ? 'Subho' : 'Guest'}.
+              {getGreeting()}, Admin.
             </h1>
           </div>
           <p className="text-slate-500 max-w-[320px] text-xs leading-relaxed">
-            {isConnected 
-              ? `Authorized session active on ${network.toUpperCase()} network. Your shielded payroll is verified.` 
-              : 'Please connect your Lace for Midnight Wallet to unlock payroll management operations.'}
+            Manage your zero-knowledge corporate operations and verify cryptographic proofs.
           </p>
         </section>
 
         {/* Dashboard Overview Hub */}
-        {activeTab === 'overview' && (
+        {activeTab === 'dashboard' && (
           <div className="space-y-6">
             {/* Metrics Cards */}
             <section className="metrics grid grid-cols-1 md:grid-cols-4 gap-4">
               <article className="card hero bg-[#17211b] text-white p-5 rounded-2xl relative overflow-hidden min-h-[150px] shadow-lg border border-[#17211b]">
                 <div className="label text-[10px] tracking-widest font-mono text-slate-400 uppercase">
-                  Shielded Treasury
+                  Shielded Token Balance
                 </div>
-                <div className="metric text-3xl font-extrabold tracking-tight text-white mt-3">
-                  {formatUSD(treasuryBalance)}
+                <div className="metric text-2xl font-extrabold tracking-tight text-white mt-3 font-mono">
+                  {formatBalance(shieldedBalance)} tNIGHT
                 </div>
                 <div className="trend text-[10px] text-[#d7ff65] font-bold mt-2">
-                  ↑ 100% On-Chain Collateralized
+                  ↑ Private ZK Ledger
                 </div>
                 <div className="orb absolute w-[200px] h-[200px] rounded-full border border-[#d7ff65]/20 right-[-10px] top-[-50px]"></div>
               </article>
 
               <article className="card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                 <div className="label text-[10px] tracking-widest font-mono text-slate-400 uppercase">
-                  Registered Workers
+                  Unshielded Token Balance
                 </div>
-                <div className="metric text-3xl font-extrabold tracking-tight text-[#17211b] mt-3">
-                  {employees.length}
+                <div className="metric text-2xl font-extrabold tracking-tight text-[#17211b] mt-3 font-mono">
+                  {formatBalance(tNightBalance)} tNIGHT
                 </div>
                 <div className="trend text-[10px] text-[#31834b] font-bold mt-2">
-                  ↑ Active Payroll Streams
+                  ↑ Public Cardano/Midnight Ledger
                 </div>
               </article>
 
               <article className="card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                 <div className="label text-[10px] tracking-widest font-mono text-slate-400 uppercase">
-                  Shielded Receipts
+                  TDust Balance
                 </div>
-                <div className="metric text-3xl font-extrabold tracking-tight text-[#17211b] mt-3">
-                  {receipts.length}
+                <div className="metric text-2xl font-extrabold tracking-tight text-[#17211b] mt-3 font-mono">
+                  {formatBalance(tDustBalance)} DUST
                 </div>
                 <div className="trend text-[10px] text-[#31834b] font-bold mt-2">
-                  ↑ {receipts.filter(r => r.zkProofStatus === 'REIMBURSED').length} Approved & Paid
+                  ↑ Transaction Fee Reserve
                 </div>
               </article>
 
               <article className="card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                 <div className="label text-[10px] tracking-widest font-mono text-slate-400 uppercase">
-                  ZK Proof Velocity
+                  Total Transactions
                 </div>
                 <div className="metric text-3xl font-extrabold tracking-tight text-[#17211b] mt-3">
-                  99.8%
+                  {totalTxns}
                 </div>
                 <div className="trend text-[10px] text-[#31834b] font-bold mt-2">
-                  ↑ Groth16 Prover Success
+                  ↑ Live Audit Velocity
                 </div>
               </article>
             </section>
@@ -200,14 +259,16 @@ export default function App() {
             {/* Level 2 Challenge Controls & Activity Console */}
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
               <div className="lg:col-span-2 space-y-6">
-                {/* Wallet Connection & ZK Proof Prover Panel */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <WalletConnect />
-                  <CircuitCall />
+                {/* Shielded Dispatcher Panel */}
+                <div className="items-start">
+                  <PaymentDispatcher
+                    onRedirectToContacts={() => setActiveTab('contacts')}
+                    onAddLog={(title) => handleAddLog(title, 'Shielded payment dispatch')}
+                  />
                 </div>
               </div>
 
-              {/* Live activity feed from outputs/nimbus-dashboard.html */}
+              {/* Live activity feed */}
               <article className="card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm h-full flex flex-col">
                 <div className="card-head flex items-center justify-between mb-4">
                   <h2 className="text-sm font-extrabold tracking-tight text-[#17211b] flex items-center gap-1.5">
@@ -216,31 +277,17 @@ export default function App() {
                   </h2>
                   <Badge variant="secondary" className="text-[9px] uppercase font-mono">Real-Time</Badge>
                 </div>
-                <div className="activity divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[300px] pr-1 space-y-2">
-                  <div className="activity-row flex items-center gap-3 py-2.5">
-                    <i className="status w-2 h-2 rounded-full bg-emerald-500 shrink-0"></i>
-                    <div className="flex-1">
-                      <b className="text-xs text-[#17211b] block">Wallet context initialized</b>
-                      <span className="text-[10px] text-slate-400">CAIP-372 Handshake Active</span>
+                <div className="activity divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[380px] pr-1 space-y-2">
+                  {protocolLogs.map((log) => (
+                    <div key={log.id} className="activity-row flex items-center gap-3 py-2.5">
+                      <i className={`status w-2 h-2 rounded-full ${log.status === 'success' ? 'bg-emerald-500' : 'bg-purple-400'} shrink-0`}></i>
+                      <div className="flex-1">
+                        <b className="text-xs text-[#17211b] block">{log.title}</b>
+                        <span className="text-[10px] text-slate-400">{log.subtitle}</span>
+                      </div>
+                      <time className="text-[10px] font-mono text-slate-400">{log.time}</time>
                     </div>
-                    <time className="text-[10px] font-mono text-slate-400">Just now</time>
-                  </div>
-                  <div className="activity-row flex items-center gap-3 py-2.5">
-                    <i className="status w-2 h-2 rounded-full bg-purple-400 shrink-0"></i>
-                    <div className="flex-1">
-                      <b className="text-xs text-[#17211b] block">ZKP circuits compiled</b>
-                      <span className="text-[10px] text-slate-400">Compact schema verified</span>
-                    </div>
-                    <time className="text-[10px] font-mono text-slate-400">12m</time>
-                  </div>
-                  <div className="activity-row flex items-center gap-3 py-2.5">
-                    <i className="status w-2 h-2 rounded-full bg-blue-400 shrink-0"></i>
-                    <div className="flex-1">
-                      <b className="text-xs text-[#17211b] block">Mock treasury funded</b>
-                      <span className="text-[10px] text-slate-400">$450,000 USD secured</span>
-                    </div>
-                    <time className="text-[10px] font-mono text-slate-400">1h</time>
-                  </div>
+                  ))}
                 </div>
               </article>
             </section>
@@ -249,7 +296,7 @@ export default function App() {
 
         {/* Tab Panel Workflows */}
         <div className="pt-2">
-          {activeTab === 'expenses' && (
+          {activeTab === 'transactions' && (
             <ShieldedExpenses
               receipts={receipts}
               onAddReceipt={handleAddReceipt}
@@ -257,16 +304,11 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'governance' && (
-            <AnonymousGovernance
-              polls={polls}
-              onCastVote={handleCastVote}
-              whistleblowerReports={whistleblowerReports}
-              onSubmitWhistleblowerReport={handleSubmitWhistleblowerReport}
-            />
+          {activeTab === 'contacts' && (
+            <ContactsPage />
           )}
 
-          {activeTab === 'employer' && (
+          {activeTab === 'settings' && (
             <EmployerPortal
               employees={employees}
               onAddEmployee={handleAddEmployee}
@@ -274,8 +316,6 @@ export default function App() {
               onDepositTreasury={handleDepositTreasury}
             />
           )}
-
-          {activeTab === 'contract' && <CompactContractViewer />}
         </div>
       </main>
     </div>

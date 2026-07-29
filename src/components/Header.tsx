@@ -1,20 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Shield, CreditCard, Vote, Building2, FileCode, Wallet, CheckCircle2, Home } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Shield, CreditCard, Vote, Building2, FileCode, Wallet, CheckCircle2, Home, ChevronLeft } from 'lucide-react';
 import { useLaceWallet } from '@/lib/lace-wallet-context';
 import { LaceWalletModal } from '@/components/LaceWalletModal';
 
-export type ActiveTab = 'overview' | 'expenses' | 'governance' | 'employer' | 'contract';
+export type ActiveTab = 'dashboard' | 'transactions' | 'contacts' | 'settings';
 
 interface HeaderProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
+export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed }) => {
   const { isConnected, walletAddress, tDustBalance, network } = useLaceWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenModal = () => setIsWalletModalOpen(true);
+    window.addEventListener('open-wallet-modal', handleOpenModal);
+    return () => window.removeEventListener('open-wallet-modal', handleOpenModal);
+  }, []);
 
   const formatShortAddr = (addr: string | null) => {
     if (!addr) return '';
@@ -27,11 +35,20 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
 
   return (
     <>
-      <aside className="sidebar">
-        {/* Brand logo */}
-        <div className="brand cursor-pointer" onClick={() => setActiveTab('overview')}>
-          <span className="mark"></span>
-          MidRoll
+      <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+        {/* Brand logo & collapse trigger */}
+        <div className="flex items-center justify-between w-full">
+          <div className="brand cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+            <span className="mark"></span>
+            MidRoll
+          </div>
+          <button 
+            onClick={() => setIsCollapsed(true)}
+            className="icon-btn hover:bg-slate-100 transition rounded-lg p-1 w-8 h-8 flex items-center justify-center shrink-0"
+            title="Collapse Sidebar"
+          >
+            <ChevronLeft className="w-4 h-4 text-ink" />
+          </button>
         </div>
 
         {/* Network / Workspace switcher */}
@@ -46,61 +63,48 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
         <nav className="nav">
           <h4>Workspace</h4>
           <a
-            href="#overview"
-            className={activeTab === 'overview' ? 'active' : ''}
+            href="#dashboard"
+            className={activeTab === 'dashboard' ? 'active' : ''}
             onClick={(e) => {
               e.preventDefault();
-              setActiveTab('overview');
+              setActiveTab('dashboard');
             }}
           >
             <i className="dot"></i>
-            Overview Hub
+            Dashboard
           </a>
           <a
-            href="#expenses"
-            className={activeTab === 'expenses' ? 'active' : ''}
+            href="#transactions"
+            className={activeTab === 'transactions' ? 'active' : ''}
             onClick={(e) => {
               e.preventDefault();
-              setActiveTab('expenses');
+              setActiveTab('transactions');
             }}
           >
             <i className="dot"></i>
-            Shielded Expenses
+            Transactions
           </a>
           <a
-            href="#governance"
-            className={activeTab === 'governance' ? 'active' : ''}
+            href="#contacts"
+            className={activeTab === 'contacts' ? 'active' : ''}
             onClick={(e) => {
               e.preventDefault();
-              setActiveTab('governance');
+              setActiveTab('contacts');
             }}
           >
             <i className="dot"></i>
-            Anonymous Governance
+            Contacts
           </a>
           <a
-            href="#employer"
-            className={activeTab === 'employer' ? 'active' : ''}
+            href="#settings"
+            className={activeTab === 'settings' ? 'active' : ''}
             onClick={(e) => {
               e.preventDefault();
-              setActiveTab('employer');
+              setActiveTab('settings');
             }}
           >
             <i className="dot"></i>
-            Employer Portal
-          </a>
-
-          <h4>Build</h4>
-          <a
-            href="#contract"
-            className={activeTab === 'contract' ? 'active' : ''}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('contract');
-            }}
-          >
-            <i className="dot"></i>
-            Compact Code
+            Settings
           </a>
         </nav>
 

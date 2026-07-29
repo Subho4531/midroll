@@ -10,7 +10,7 @@ export const CompactContractViewer: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const compactCode = `// ============================================================================
-// MidRoll: Shielded Expenses (Feat 5) & Anonymous Governance (Feat 6)
+// MidRoll: Shielded Expenses (Feat 5), Anonymous Governance (Feat 6) & Payroll (Feat 7)
 // Language: Midnight Compact DSL v0.23+
 // Target: Midnight Ledger (zk-SNARK state transitions)
 // ============================================================================
@@ -20,18 +20,20 @@ import CompactStandardLibrary;
 
 export ledger dummy: Uint<32>;
 
-/**
- * @notice Feature 5: Shielded Expense Claim Verification
- * Proves merchant receipt total is within category limit without disclosing details.
- */
+// Single payment validation circuit
+export circuit dispatch_payment(recipient: Bytes<32>, amount: Uint<32>): [] {
+    dummy = 1;
+}
+
+// Multi payment validation circuit
+export circuit dispatch_multi_payment(recipients: Vector<10, Bytes<32>>, amounts: Vector<10, Uint<32>>, count: Uint<8>): [] {
+    dummy = 1;
+}
+
 export circuit claim_shielded_expense(amount: Uint<32>): [] {
     dummy = 1;
 }
 
-/**
- * @notice Feature 6: Anonymous Governance Vote Casting
- * Proves active payroll membership to cast vote without revealing voter identity.
- */
 export circuit cast_shielded_vote(proposal_id: Uint<32>): [] {
     dummy = 1;
 }`;

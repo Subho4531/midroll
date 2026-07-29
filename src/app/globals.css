@@ -46,11 +46,12 @@ button {
 /* Nimbus Layout Elements */
 .shell {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   min-height: 100vh;
 }
 
 .sidebar {
+  width: 260px;
   padding: 28px 20px;
   border-right: 1px solid var(--line);
   display: flex;
@@ -60,6 +61,21 @@ button {
   position: sticky;
   top: 0;
   height: 100vh;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed {
+  width: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  border-right-color: transparent;
+  transform: translateX(-260px);
 }
 
 .brand {
