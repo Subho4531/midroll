@@ -37,13 +37,24 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isLaceInstalled, setIsLaceInstalled] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if Midnight wallet connectors are present in window.midnight
+  // Check if Midnight / Cardano Lace wallet connectors are present in window
   useEffect(() => {
     const checkLacePresence = () => {
-      const hasMidnightWallets = typeof window !== 'undefined' && 
-        (window as any).midnight && 
-        Object.keys((window as any).midnight).length > 0;
-      setIsLaceInstalled(Boolean(hasMidnightWallets));
+      if (typeof window === 'undefined') return;
+      
+      const win = window as any;
+      const hasMidnightWallets = win.midnight && Object.keys(win.midnight).length > 0;
+      const hasCardanoLace = win.cardano?.lace;
+      const hasLace = Boolean(hasMidnightWallets || hasCardanoLace);
+      
+      setIsLaceInstalled(hasLace);
+      
+      // Auto-toggle simulated mode off if a real wallet is detected for the first time
+      // unless user has already connected manually or has state saved
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (hasLace && !saved) {
+        setIsSimulatedMode(false);
+      }
     };
 
     checkLacePresence();
@@ -64,7 +75,7 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setTNightBalance(parsed.tNightBalance || 250000);
           setTDustBalance(parsed.tDustBalance || 42500);
           setNetworkState(parsed.network || 'preview');
-          setIsSimulatedMode(parsed.isSimulatedMode ?? true);
+          setIsSimulatedMode(parsed.isSimulatedMode ?? false);
         }
       }
     } catch (e) {
@@ -97,38 +108,76 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setError(null);
 
     try {
-      // Access wallets via the standard window.midnight discovery mechanism
-      const wallets = typeof window !== 'undefined' && (window as any).midnight 
-        ? Object.values((window as any).midnight) as any[]
-        : [];
+      const win = window as any;
+      let laceWallet: any = null;
 
-      // Find a wallet that matches Lace (or the first available wallet)
-      const laceWallet = wallets.find(
-        (w) => w.name?.toLowerCase().includes('lace') || w.rdns?.toLowerCase().includes('lace')
-      ) || wallets[0];
+      // 1. Check window.midnight for injected wallets
+      if (win.midnight) {
+        if (win.midnight.mnLace) {
+          laceWallet = win.midnight.mnLace;
+        } else if (win.midnight.lace) {
+          laceWallet = win.midnight.lace;
+        } else {
+          // Enumerate to support CAIP-372 UUID keys
+          const wallets = Object.values(win.midnight);
+          laceWallet = wallets.find(
+            (w: any) => w.name?.toLowerCase().includes('lace') || w.rdns?.toLowerCase().includes('lace')
+          ) || wallets[0];
+        }
+      }
+
+      // 2. Fallback to window.cardano.lace (some older extension versions)
+      if (!laceWallet && win.cardano?.lace) {
+        laceWallet = win.cardano.lace;
+      }
 
       if (laceWallet && !isSimulatedMode) {
-        // Real CAIP-372 connect flow
-        const connectedApi = await laceWallet.connect(network);
+        // Handshake: supports connect(networkId) OR enable()
+        let connectedApi: any = null;
+        if (typeof laceWallet.connect === 'function') {
+          connectedApi = await laceWallet.connect(network);
+        } else if (typeof laceWallet.enable === 'function') {
+          connectedApi = await laceWallet.enable();
+        } else {
+          throw new Error("Found Lace wallet but it does not support connection handshake methods.");
+        }
+
+        if (!connectedApi) {
+          throw new Error("Lace wallet handshake did not return a valid API interface.");
+        }
         
-        // Fetch addresses
-        const { unshieldedAddress } = await connectedApi.getUnshieldedAddress();
-        const { shieldedAddress: shieldAddr } = await connectedApi.getShieldedAddresses();
+        // Fetch addresses with fallbacks
+        const unshieldedAddress = typeof connectedApi.getUnshieldedAddress === 'function'
+          ? (await connectedApi.getUnshieldedAddress()).unshieldedAddress
+          : typeof connectedApi.getChangeAddress === 'function'
+          ? await connectedApi.getChangeAddress()
+          : 'mn_addr_unshielded_fallback';
+
+        const shieldedAddress = typeof connectedApi.getShieldedAddresses === 'function'
+          ? (await connectedApi.getShieldedAddresses()).shieldedAddress
+          : '0xmid_shield_fallback';
         
-        // Fetch balances
-        const dustInfo = await connectedApi.getDustBalance();
-        const unshieldedBalances = await connectedApi.getUnshieldedBalances();
-        
-        // Find Night token key or value (often the first key or empty string key)
-        const tNightBigInt = Object.values(unshieldedBalances)[0] || 0n;
+        // Fetch balances with fallbacks
+        let dustBalanceVal = 42500;
+        if (typeof connectedApi.getDustBalance === 'function') {
+          const dustInfo = await connectedApi.getDustBalance();
+          dustBalanceVal = Number(dustInfo.balance);
+        }
+
+        let tNightBalanceVal = 250000;
+        if (typeof connectedApi.getUnshieldedBalances === 'function') {
+          const unshieldedBalances = await connectedApi.getUnshieldedBalances();
+          const tNightBigInt = Object.values(unshieldedBalances)[0] || 0n;
+          tNightBalanceVal = Number(tNightBigInt);
+        }
 
         setWalletAddress(unshieldedAddress);
-        setShieldedAddress(shieldAddr);
-        setTDustBalance(Number(dustInfo.balance));
-        setTNightBalance(Number(tNightBigInt));
+        setShieldedAddress(shieldedAddress);
+        setTDustBalance(dustBalanceVal);
+        setTNightBalance(tNightBalanceVal);
         setIsConnected(true);
       } else {
-        // Simulated Local Devnet or Fallback connection
+        // Simulated connection
         await new Promise((r) => setTimeout(r, 800));
         
         const mockAddress = network === 'preview' 
