@@ -25,24 +25,6 @@ const LaceWalletContext = createContext<LaceWalletState | undefined>(undefined);
 
 const LOCAL_STORAGE_KEY = 'midroll_lace_wallet_state';
 
-// Types for window.midnight / window.cardano Lace API
-declare global {
-  interface Window {
-    midnight?: {
-      mnLace?: {
-        name: string;
-        apiVersion: string;
-        enable: () => Promise<any>;
-        isEnabled: () => Promise<boolean>;
-      };
-      lace?: any;
-    };
-    cardano?: {
-      lace?: any;
-    };
-  }
-}
-
 export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -55,17 +37,17 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isLaceInstalled, setIsLaceInstalled] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if Lace for Midnight is present in window
+  // Check if Midnight wallet connectors are present in window.midnight
   useEffect(() => {
     const checkLacePresence = () => {
-      const hasLace = Boolean(
-        window?.midnight?.mnLace || window?.midnight?.lace || window?.cardano?.lace
-      );
-      setIsLaceInstalled(hasLace);
+      const hasMidnightWallets = typeof window !== 'undefined' && 
+        (window as any).midnight && 
+        Object.keys((window as any).midnight).length > 0;
+      setIsLaceInstalled(Boolean(hasMidnightWallets));
     };
 
     checkLacePresence();
-    const interval = setInterval(checkLacePresence, 1500);
+    const interval = setInterval(checkLacePresence, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -115,21 +97,38 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setError(null);
 
     try {
-      const laceApi = window?.midnight?.mnLace || window?.midnight?.lace || window?.cardano?.lace;
+      // Access wallets via the standard window.midnight discovery mechanism
+      const wallets = typeof window !== 'undefined' && (window as any).midnight 
+        ? Object.values((window as any).midnight) as any[]
+        : [];
 
-      if (laceApi && !isSimulatedMode) {
-        // Attempt real Lace extension handshake
-        const walletInstance = await laceApi.enable();
-        const state = walletInstance.state ? await walletInstance.state() : null;
+      // Find a wallet that matches Lace (or the first available wallet)
+      const laceWallet = wallets.find(
+        (w) => w.name?.toLowerCase().includes('lace') || w.rdns?.toLowerCase().includes('lace')
+      ) || wallets[0];
+
+      if (laceWallet && !isSimulatedMode) {
+        // Real CAIP-372 connect flow
+        const connectedApi = await laceWallet.connect(network);
         
-        const addr = state?.address || state?.shieldedAddress || 'mn_addr_preview1h3ssm5ru2t6eqy4g3she78zlxn96e36ms6pq996aduvmateh9p9sk96u7s';
-        const shieldAddr = state?.shieldedAddress || '0xmid_shield_preview_991823a';
+        // Fetch addresses
+        const { unshieldedAddress } = await connectedApi.getUnshieldedAddress();
+        const { shieldedAddress: shieldAddr } = await connectedApi.getShieldedAddresses();
         
-        setWalletAddress(addr);
+        // Fetch balances
+        const dustInfo = await connectedApi.getDustBalance();
+        const unshieldedBalances = await connectedApi.getUnshieldedBalances();
+        
+        // Find Night token key or value (often the first key or empty string key)
+        const tNightBigInt = Object.values(unshieldedBalances)[0] || 0n;
+
+        setWalletAddress(unshieldedAddress);
         setShieldedAddress(shieldAddr);
+        setTDustBalance(Number(dustInfo.balance));
+        setTNightBalance(Number(tNightBigInt));
         setIsConnected(true);
       } else {
-        // Simulated Lace Wallet Connection Mode (Fallback & Local Devnet)
+        // Simulated Local Devnet or Fallback connection
         await new Promise((r) => setTimeout(r, 800));
         
         const mockAddress = network === 'preview' 
@@ -161,7 +160,6 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const setNetwork = (net: MidnightNetwork) => {
     setNetworkState(net);
     if (isConnected && walletAddress) {
-      // Update prefix for display if simulated
       if (walletAddress.startsWith('mn_addr_')) {
         const parts = walletAddress.split('1');
         if (parts.length > 1) {
