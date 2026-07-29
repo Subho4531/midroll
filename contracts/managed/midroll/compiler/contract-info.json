@@ -4,6 +4,73 @@
   "runtime-version": "0.16.0",
   "circuits": [
     {
+      "name": "dispatch_payment",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "recipient",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "amount",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 4294967295
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "dispatch_multi_payment",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "recipients",
+          "type": {
+            "type-name": "Vector",
+            "length": 10,
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          }
+        },
+        {
+          "name": "amounts",
+          "type": {
+            "type-name": "Vector",
+            "length": 10,
+            "type": {
+              "type-name": "Uint",
+              "maxval": 4294967295
+            }
+          }
+        },
+        {
+          "name": "count",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 255
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
       "name": "claim_shielded_expense",
       "pure": false,
       "proof": true,

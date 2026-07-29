@@ -4,6 +4,13 @@ export type Witnesses<PS> = {
 }
 
 export type ImpureCircuits<PS> = {
+  dispatch_payment(context: __compactRuntime.CircuitContext<PS>,
+                   recipient_0: Uint8Array,
+                   amount_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  dispatch_multi_payment(context: __compactRuntime.CircuitContext<PS>,
+                         recipients_0: Uint8Array[],
+                         amounts_0: bigint[],
+                         count_0: bigint): __compactRuntime.CircuitResults<PS, []>;
   claim_shielded_expense(context: __compactRuntime.CircuitContext<PS>,
                          amount_0: bigint): __compactRuntime.CircuitResults<PS, []>;
   cast_shielded_vote(context: __compactRuntime.CircuitContext<PS>,
@@ -11,6 +18,13 @@ export type ImpureCircuits<PS> = {
 }
 
 export type ProvableCircuits<PS> = {
+  dispatch_payment(context: __compactRuntime.CircuitContext<PS>,
+                   recipient_0: Uint8Array,
+                   amount_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  dispatch_multi_payment(context: __compactRuntime.CircuitContext<PS>,
+                         recipients_0: Uint8Array[],
+                         amounts_0: bigint[],
+                         count_0: bigint): __compactRuntime.CircuitResults<PS, []>;
   claim_shielded_expense(context: __compactRuntime.CircuitContext<PS>,
                          amount_0: bigint): __compactRuntime.CircuitResults<PS, []>;
   cast_shielded_vote(context: __compactRuntime.CircuitContext<PS>,
@@ -21,6 +35,13 @@ export type PureCircuits = {
 }
 
 export type Circuits<PS> = {
+  dispatch_payment(context: __compactRuntime.CircuitContext<PS>,
+                   recipient_0: Uint8Array,
+                   amount_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  dispatch_multi_payment(context: __compactRuntime.CircuitContext<PS>,
+                         recipients_0: Uint8Array[],
+                         amounts_0: bigint[],
+                         count_0: bigint): __compactRuntime.CircuitResults<PS, []>;
   claim_shielded_expense(context: __compactRuntime.CircuitContext<PS>,
                          amount_0: bigint): __compactRuntime.CircuitResults<PS, []>;
   cast_shielded_vote(context: __compactRuntime.CircuitContext<PS>,

@@ -4,6 +4,16 @@ import CompactStandardLibrary;
 
 export ledger dummy: Uint<32>;
 
+// Single payment validation circuit
+export circuit dispatch_payment(recipient: Bytes<32>, amount: Uint<32>): [] {
+    dummy = 1;
+}
+
+// Multi payment validation circuit
+export circuit dispatch_multi_payment(recipients: Vector<10, Bytes<32>>, amounts: Vector<10, Uint<32>>, count: Uint<8>): [] {
+    dummy = 1;
+}
+
 export circuit claim_shielded_expense(amount: Uint<32>): [] {
     dummy = 1;
 }
