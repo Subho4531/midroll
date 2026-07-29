@@ -1,25 +1,28 @@
-# MidRoll
-> A privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements (Feature 5) and Anonymous Employee Governance & Whistleblower Protections (Feature 6) via Compact ZK smart contracts.
+# MidRoll Protocol
+> privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements and Anonymous Employee Governance & Whistleblower Protections.
+
+## Live Demo
+[https://midroll.vercel.app/](https://midroll.vercel.app/)
 
 ## Contract Address
 | Network  | Address                          |
 |----------|----------------------------------|
-| Devnet (Local) | `85dd06179800830b2d181f3238ecf3b94a0ae820bcc62953e50c0f9d26743a7d`   |
+| Preprod  | `85dd06179800830b2d181f3238ecf3b94a0ae820bcc62953e50c0f9d26743a7d`   |
 
-*(Contract compiled with Midnight Compact DSL v0.12.1)*
+*(Contract compiled with Midnight Compact DSL v0.23)*
 
 ## What This Does
 MidRoll enables decentralized organizations and companies to execute confidential employee workflows without exposing sensitive financial records on-chain:
-- **Feature 5 (Shielded Corporate Expense Reimbursements)**: Employees submit zero-knowledge merchant receipt proofs attesting that expenses fall within category limits. Treasury disburses reimbursements directly to disposable stealth addresses without exposing itemized receipts, personal card numbers, or vendor details.
-- **Feature 6 (Anonymous Employee Governance & Whistleblower Protocol)**: Employees verify payroll status via ZK witnesses to vote on company polls and submit encrypted internal compliance alerts without fear of employer retaliation or identity de-anonymization.
+- **Shielded Corporate Expense Reimbursements**: Employees submit zero-knowledge merchant receipt proofs attesting that expenses fall within category limits. Treasury disburses reimbursements directly to disposable stealth addresses without exposing itemized receipts, personal card numbers, or vendor details.
+- **Anonymous Employee Governance & Whistleblower Protocol**: Employees verify payroll status via ZK witnesses to vote on company polls and submit encrypted internal compliance alerts without fear of employer retaliation or identity de-anonymization.
 
-## Public State vs Private Witness
-- **Public State (on-chain, visible to anyone)**:
+## Privacy Model
+- **What is PUBLIC**:
   - `treasury_commitment`: Hash commitment of corporate payroll treasury pool.
   - `nullifier_root`: Set of spent nullifiers preventing double-claiming expenses & double-voting.
   - `active_proposals_count`: Total active DAO governance polls.
   - `aggregate_expense_disbursed`: Cumulative verified reimbursement payout.
-- **Private Witness (client-side, never on-chain)**:
+- **What is PRIVATE**:
   - `salary_amount_cents`: Employee's raw monthly compensation rate.
   - `employee_secret_key`: Secret key used for signing client-side ZK proofs.
   - `receipt_itemized_details`: Raw itemized purchase items and merchant credit card data.
@@ -29,19 +32,18 @@ MidRoll enables decentralized organizations and companies to execute confidentia
   - Proves active payroll membership to cast anonymous governance votes.
   - Proves nullifier has not been spent previously.
 
+## Privacy Claim
+An on-chain observer can only see that a valid ZK transaction was executed, that the contract state commitment has updated, and that a proof has been successfully verified. An observer **cannot** see the worker's wallet address, the itemized receipt contents, the merchant's credit card information, the voter's identity, or the whistleblower's personal details.
+
 ## Tech Stack
-- **Blockchain**: Midnight Network (Preview & Preprod)
-- **Smart Contract Language**: Compact DSL
-- **ZK Proving Engine**: Groth16 over BLS12-381 curve / `midnightnetwork/proof-server`
-- **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Framer Motion, Lucide Icons
-- **Testing**: Vitest unit test suite
+Midnight network, Compact DSL, Midnight.js SDK, Next.js / React, Lace wallet
 
 ## Prerequisites
-- Node.js v22+
-- Docker Desktop (for `midnightnetwork/proof-server`)
-- Git & GitHub CLI (`gh`)
+- Lace wallet installed
+- Node.js v22
 
-## Setup Instructions
+## Run Locally
+
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/Subho4531/midroll.git
@@ -63,34 +65,16 @@ MidRoll enables decentralized organizations and companies to execute confidentia
    ```bash
    npm run deploy
    ```
-   To deploy to the public Preview network:
+   To deploy to the public Preprod network:
    ```bash
-   npm run deploy --network preview
+   npm run deploy --network preprod
    ```
 
 5. **Run the local Web Frontend**:
    ```bash
    npm run dev
    ```
-   Open `http://localhost:3000` in your browser.
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Run Tests
-Run the Vitest test suite covering ZK circuit constraints, nullifier uniqueness, and private state non-exposure:
-```bash
-npx vitest run
-```
-
-## Initial Idea
-The initial idea for **MidRoll** stems from a critical dilemma in Web3 corporate management: how can organizations maintain auditability and employee rights (reimbursements, compensation governance, whistleblower protections) without exposing private salaries, identity data, and vendor spending patterns on a public blockchain?
-
-MidRoll resolves this by leveraging **Midnight's Zero-Knowledge Compact DSL smart contract state**. By utilizing private witness inputs and client-side zk-SNARK proof generation:
-1. **Shielded Corporate Expenses (Feature 5)**: Workers generate ZK proofs attesting that expense receipts fall within merchant category policy limits. Reimbursements disburse to stealth addresses automatically without revealing credit card numbers or raw itemized purchase items.
-2. **Anonymous Governance & Whistleblower Protocol (Feature 6)**: Workers verify active payroll membership without de-anonymizing themselves, enabling anonymous compensation voting and secure whistleblower alerts protected from employer retaliation.
-
-## Screenshots
-
-### 1. Successful Compile Output (Circuits Listed)
-![Compile Output](./screenshots/contract_compile.png)
-
-### 2. Contract Deployed with Address Shown
-![Deploy Output](./screenshots/contract_deploy.png)
+## Demo Video
+[PLACEHOLDER — I will add the link after recording]
