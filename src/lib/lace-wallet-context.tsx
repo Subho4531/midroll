@@ -50,7 +50,6 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setIsLaceInstalled(hasLace);
       
       // Auto-toggle simulated mode off if a real wallet is detected for the first time
-      // unless user has already connected manually or has state saved
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (hasLace && !saved) {
         setIsSimulatedMode(false);
@@ -146,29 +145,54 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           throw new Error("Lace wallet handshake did not return a valid API interface.");
         }
         
-        // Fetch addresses with fallbacks
-        const unshieldedAddress = typeof connectedApi.getUnshieldedAddress === 'function'
-          ? (await connectedApi.getUnshieldedAddress()).unshieldedAddress
-          : typeof connectedApi.getChangeAddress === 'function'
-          ? await connectedApi.getChangeAddress()
-          : 'mn_addr_unshielded_fallback';
+        // Fetch addresses safely with individual try-catch blocks to prevent breaking
+        let unshieldedAddress = 'mn_addr_unshielded_connected';
+        try {
+          if (typeof connectedApi.getUnshieldedAddress === 'function') {
+            const res = await connectedApi.getUnshieldedAddress();
+            unshieldedAddress = res?.unshieldedAddress || res || 'mn_addr_unshielded_connected';
+          } else if (typeof connectedApi.getChangeAddress === 'function') {
+            unshieldedAddress = await connectedApi.getChangeAddress();
+          }
+        } catch (e: any) {
+          console.warn('Failed to fetch unshielded address:', e);
+        }
 
-        const shieldedAddress = typeof connectedApi.getShieldedAddresses === 'function'
-          ? (await connectedApi.getShieldedAddresses()).shieldedAddress
-          : '0xmid_shield_fallback';
+        let shieldedAddress = '0xmid_shield_connected';
+        try {
+          if (typeof connectedApi.getShieldedAddresses === 'function') {
+            const res = await connectedApi.getShieldedAddresses();
+            shieldedAddress = res?.shieldedAddress || res || '0xmid_shield_connected';
+          }
+        } catch (e: any) {
+          console.warn('Failed to fetch shielded address:', e);
+        }
         
-        // Fetch balances with fallbacks
         let dustBalanceVal = 42500;
-        if (typeof connectedApi.getDustBalance === 'function') {
-          const dustInfo = await connectedApi.getDustBalance();
-          dustBalanceVal = Number(dustInfo.balance);
+        try {
+          if (typeof connectedApi.getDustBalance === 'function') {
+            const res = await connectedApi.getDustBalance();
+            if (res) {
+              dustBalanceVal = typeof res.balance !== 'undefined' ? Number(res.balance) : Number(res);
+            }
+          }
+        } catch (e: any) {
+          console.warn('Failed to fetch DUST balance:', e);
         }
 
         let tNightBalanceVal = 250000;
-        if (typeof connectedApi.getUnshieldedBalances === 'function') {
-          const unshieldedBalances = await connectedApi.getUnshieldedBalances();
-          const tNightBigInt = Object.values(unshieldedBalances)[0] || 0n;
-          tNightBalanceVal = Number(tNightBigInt);
+        try {
+          if (typeof connectedApi.getUnshieldedBalances === 'function') {
+            const res = await connectedApi.getUnshieldedBalances();
+            if (res) {
+              const vals = Object.values(res);
+              if (vals.length > 0) {
+                tNightBalanceVal = Number(vals[0]);
+              }
+            }
+          }
+        } catch (e: any) {
+          console.warn('Failed to fetch tNIGHT balance:', e);
         }
 
         setWalletAddress(unshieldedAddress);
