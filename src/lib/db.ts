@@ -30,8 +30,16 @@ if (!process.env.DATABASE_URL) {
 const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined };
 
 const createPrismaClient = () => {
+  const url = process.env.DATABASE_URL || '';
+  const isLocal = url.includes('localhost') || 
+                  url.includes('127.0.0.1') || 
+                  url.includes('host.docker.internal');
+                  
+  const cleanUrl = url.split('?')[0];
+                  
   const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: isLocal ? url : cleanUrl,
+    ssl: isLocal ? false : { rejectUnauthorized: false },
   });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
