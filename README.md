@@ -4,7 +4,7 @@
 > A privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements and Anonymous Employee Governance & Whistleblower Protections.
 
 ## Live Demo
-[https://midroll.vercel.app/](https://midroll.vercel.app/)
+[https://midroll.netlify.app/](https://midroll.vercel.app/)
 
 ## Contract Address
 | Network  | Address                                                            |
