@@ -159,7 +159,7 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
                 <div className="p-3.5 bg-[#f8faf7] border border-line rounded-xl space-y-1">
                   <div className="text-[11px] text-muted font-mono uppercase">tDUST ZK Fuel</div>
                   <div className="text-lg font-bold text-ink font-mono">
-                    {tDustBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}{' '}
+                    {(tDustBalance/1000000).toLocaleString(undefined, { maximumFractionDigits: 0 })}{' '}
                     <span className="text-xs text-muted font-normal font-mono">tDUST</span>
                   </div>
                 </div>

@@ -92,7 +92,11 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
             <span>Submit Shielded Expense</span>
           </button>
         </div>
-        <div className="orb"></div>
+        <img
+          src="/images/dust.png"
+          alt="Shielded Token Balance Background"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none transition-transform duration-500 group-hover:scale-105 z-0 opacity-20"
+        />
       </div>
 
       {/* Wallet Status Prompt if not connected */}

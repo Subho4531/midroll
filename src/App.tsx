@@ -11,6 +11,7 @@ import { useLaceWallet } from '@/lib/lace-wallet-context';
 import { ContactsPage } from '@/components/ContactsPage';
 import { PaymentDispatcher } from '@/components/PaymentDispatcher';
 import { LandingPage } from '@/components/LandingPage';
+import { CompanyOnboardingModal } from '@/components/CompanyOnboardingModal';
 import {
   Employee,
   ExpenseReceipt,
@@ -21,7 +22,7 @@ import {
   INITIAL_POLLS,
   INITIAL_WHISTLEBLOWER_REPORTS,
 } from '@/lib/midroll-zk';
-import { Shield, Sparkles, AlertCircle, Info, Clock, CheckCircle2, History, RefreshCw, Wallet, Menu } from 'lucide-react';
+import { Shield, Sparkles, AlertCircle, Info, Clock, CheckCircle2, History, RefreshCw, Wallet, Menu, Building2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
@@ -29,7 +30,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const { isConnected, walletAddress, network, connect, isConnecting, tNightBalance, tDustBalance, shieldedBalance } = useLaceWallet();
   
-  // App state
+  // App & Company Database state
+  const [company, setCompany] = useState<any>(null);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+  const [isLoadingCompany, setIsLoadingCompany] = useState(false);
+
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [receipts, setReceipts] = useState<ExpenseReceipt[]>(INITIAL_RECEIPTS);
   const [polls, setPolls] = useState<GovernancePoll[]>(INITIAL_POLLS);
@@ -44,6 +49,39 @@ export default function App() {
   ]);
 
   const logCounter = React.useRef(100);
+
+  // Check company database record on wallet connection
+  React.useEffect(() => {
+    if (isConnected && walletAddress) {
+      setIsLoadingCompany(true);
+      fetch(`/api/company?walletAddress=${encodeURIComponent(walletAddress)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.exists && data.company) {
+            setCompany(data.company);
+            setIsCompanyModalOpen(false);
+          } else {
+            setCompany(null);
+            setIsCompanyModalOpen(true);
+          }
+        })
+        .catch((err) => {
+          console.error('Error fetching company:', err);
+        })
+        .finally(() => {
+          setIsLoadingCompany(false);
+        });
+    } else {
+      setCompany(null);
+      setIsCompanyModalOpen(false);
+    }
+  }, [isConnected, walletAddress]);
+
+  const handleCompanyCreated = (newCompany: any) => {
+    setCompany(newCompany);
+    setIsCompanyModalOpen(false);
+    handleAddLog(`Registered ${newCompany.name}`, 'Company Profile Created in Database');
+  };
 
   const handleAddLog = (title: string, subtitle = 'Verification lock active') => {
     logCounter.current += 1;
@@ -148,12 +186,15 @@ export default function App() {
                 <Menu className="w-4 h-4 text-ink" />
               </button>
             )}
-            <div className="crumb text-[10px] tracking-wider uppercase font-mono text-slate-400">
-              MIDROLL PROTOCOL / {activeTab.toUpperCase()}
-            </div>
+            {/* Topbar Breadcrumb */}
+            {/* <div className="crumb text-[10px] tracking-wider uppercase font-mono text-slate-500 font-bold flex items-center gap-2">
+              <span className="text-[#31834b]">MIDROLL PROTOCOL</span>
+              <span>/</span>
+              <span className="text-[#17211b]">{activeTab.toUpperCase()}</span>
+            </div> */}
           </div>
           <div className="top-actions">
-            {/* Primary Connect Wallet Button in Header (when connected, maybe shows address and disconnect) */}
+            {/* Primary Connect Wallet Button in Header */}
             <button className="new flex items-center gap-2" onClick={() => window.dispatchEvent(new CustomEvent('open-wallet-modal'))}>
               <Wallet className="w-4 h-4" />
               {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}` : 'Connect Wallet'}
@@ -163,20 +204,28 @@ export default function App() {
           </div>
         </header>
 
-        {/* Dynamic Welcome Heading */}
-        <section className="intro">
-          <div>
-            <div className="eyebrow text-[10px] tracking-widest font-mono text-[#4c855a] uppercase">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        {/* Dynamic Welcome Heading with Date & Company Profile */}
+        {activeTab === 'dashboard' && (
+        <section className="intro border-b border-slate-200/80 pb-5 mb-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              {/* <div className="eyebrow text-[10px] tracking-widest font-mono text-[#31834b] uppercase flex items-center gap-1.5 font-bold bg-[#eaf1ea] px-2.5 py-1 rounded-md border border-[#cdd5cd]">
+                <Building2 className="w-3.5 h-3.5 text-[#31834b]" />
+                {company ? company.name : 'ZK WORKSPACE'}
+              </div> */}
+              <span className="text-xs font-mono text-slate-400 font-medium">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              </span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#17211b] mt-1">
-              {getGreeting()}, Admin.
+            <h1 className="text-3xl font-extrabold tracking-tight text-[#17211b] pt-1">
+              {getGreeting()}, {company ? company.name : 'Admin'}.
             </h1>
           </div>
-          <p className="text-slate-500 max-w-[320px] text-xs leading-relaxed">
-            Manage your zero-knowledge corporate operations and verify cryptographic proofs.
-          </p>
+          {/* <p className="text-slate-500 max-w-[420px] text-xs leading-relaxed font-medium pt-1">
+             Manage your zero-knowledge corporate operations and verify cryptographic proofs on Midnight.
+          </p> */}
         </section>
+        )}
 
         {/* Dashboard Overview Hub */}
         {activeTab === 'dashboard' && (
@@ -184,7 +233,8 @@ export default function App() {
             {/* Metrics Cards */}
             <section className="metrics grid grid-cols-1 md:grid-cols-4 gap-4">
               <article className="card hero bg-[#17211b] text-white p-5 rounded-2xl relative overflow-hidden min-h-[150px] shadow-lg border border-[#17211b]">
-                <div className="label text-[10px] tracking-widest font-mono text-slate-400 uppercase">
+                
+                <div className="label text-[10px] tracking-widest font-mono text-slate-400 uppercase ">
                   Shielded Token Balance
                 </div>
                 <div className="metric text-2xl font-extrabold tracking-tight text-white mt-3 font-mono">
@@ -193,7 +243,11 @@ export default function App() {
                 <div className="trend text-[10px] text-[#d7ff65] font-bold mt-2">
                   ↑ Private ZK Ledger
                 </div>
-                <div className="orb absolute w-[200px] h-[200px] rounded-full border border-[#d7ff65]/20 right-[-10px] top-[-50px]"></div>
+                <img 
+                  src="/images/sheilded.png" 
+                  alt="Shielded Token Balance Background" 
+                  className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none transition-transform duration-500 group-hover:scale-105 z-0 opacity-20"
+                />
               </article>
 
               <article className="card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
@@ -295,6 +349,12 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* First-Time Company Registration Modal */}
+      <CompanyOnboardingModal
+        isOpen={isCompanyModalOpen}
+        onCompanyCreated={handleCompanyCreated}
+      />
     </div>
   );
 }

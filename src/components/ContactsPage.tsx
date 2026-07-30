@@ -269,28 +269,11 @@ export const ContactsPage: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Quick info metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/10 relative z-10">
-          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
-            <div className="text-[10px] uppercase font-mono text-[#aebbb2] tracking-wider">Total Stored Contacts</div>
-            <div className="text-xl font-bold text-white font-mono">{contacts.length}</div>
-            <div className="text-[10px] text-slate-300 font-mono">Unique wallet keys</div>
-          </div>
-
-          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
-            <div className="text-[10px] uppercase font-mono text-[#aebbb2] tracking-wider">Total Teams Compiled</div>
-            <div className="text-xl font-bold text-[#d7ff65] font-mono">{teams.length}</div>
-            <div className="text-[10px] text-[#aebbb2] font-mono">Roster sheets loaded</div>
-          </div>
-
-          <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-1">
-            <div className="text-[10px] uppercase font-mono text-[#aebbb2] tracking-wider">Database Link Status</div>
-            <div className="text-xl font-bold text-[#ddd3ff] font-mono">PostgreSQL Active</div>
-            <div className="text-[10px] text-[#ddd3ff] font-mono">On-chain address indexer</div>
-          </div>
-        </div>
-        <div className="orb"></div>
+        <img 
+                  src="/images/unsheilded.png" 
+                  alt="Shielded Token Balance Background" 
+                  className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none transition-transform duration-500 group-hover:scale-105 z-0 opacity-20"
+                />
       </div>
 
       {/* Main Panel Routing */}

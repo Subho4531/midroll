@@ -10,11 +10,26 @@ datasource db {
   provider = "postgresql"
 }
 
+model Company {
+  id              String              @id @default(uuid())
+  name            String
+  description     String?
+  walletAddress   String              @unique
+  shieldedAddress String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  contacts        Contact[]
+  teams           Team[]
+  transactions    TransactionRecord[]
+}
+
 model Contact {
   walletAddress String   @id
   name          String
   purpose       String
   amount        Float    @default(0.0)
+  companyId     String?
+  company       Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   teams         Team[]   @relation("TeamMembers")
   createdAt     DateTime @default(now())
 }
@@ -22,6 +37,21 @@ model Contact {
 model Team {
   id        String    @id @default(uuid())
   name      String
+  companyId String?
+  company   Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   members   Contact[] @relation("TeamMembers")
   createdAt DateTime  @default(now())
+}
+
+model TransactionRecord {
+  id             String   @id @default(uuid())
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  txHash         String
+  type           String
+  amount         Float
+  recipientCount Int      @default(1)
+  status         String   @default("CONFIRMED")
+  metadata       String?
+  createdAt      DateTime @default(now())
 }
