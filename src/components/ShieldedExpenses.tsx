@@ -71,7 +71,7 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Banner Card */}
-      <div className="card hero relative overflow-hidden">
+      {/* <div className="card hero relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
           <div>
             <div className="eyebrow text-[#aebbb2] mb-2">Feature 5 &bull; Shielded Corporate Expenses</div>
@@ -97,7 +97,7 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
           alt="Shielded Token Balance Background"
           className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none transition-transform duration-500 group-hover:scale-105 z-0 opacity-20"
         />
-      </div>
+      </div> */}
 
       {/* Wallet Status Prompt if not connected */}
       {!isConnected && (
@@ -119,7 +119,7 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
       )}
 
       {/* Receipts Table Card */}
-      <div className="card">
+      {/* <div className="card">
         <div className="card-head">
           <div>
             <h2>Active Expense Proof Submissions</h2>
@@ -187,7 +187,7 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
 
       {/* Submit Expense Modal */}
       <Dialog open={isSubmitModalOpen} onOpenChange={setIsSubmitModalOpen}>

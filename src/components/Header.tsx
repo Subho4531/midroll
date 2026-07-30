@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Shield, CreditCard, Vote, Building2, FileCode, Wallet, CheckCircle2, Home, ChevronLeft } from 'lucide-react';
 import { useLaceWallet } from '@/lib/lace-wallet-context';
 import { LaceWalletModal } from '@/components/LaceWalletModal';
@@ -8,13 +10,14 @@ import { LaceWalletModal } from '@/components/LaceWalletModal';
 export type ActiveTab = 'dashboard' | 'transactions' | 'contacts' | 'settings';
 
 interface HeaderProps {
-  activeTab: ActiveTab;
-  setActiveTab: (tab: ActiveTab) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
+  activeTab?: ActiveTab;
+  setActiveTab?: (tab: ActiveTab) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed }) => {
+export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) => {
+  const pathname = usePathname();
   const { isConnected, walletAddress, tDustBalance, network } = useLaceWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
@@ -38,10 +41,10 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, isColla
       <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         {/* Brand logo & collapse trigger */}
         <div className="flex items-center justify-between w-full">
-          <div className="brand cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+          <Link href="/dashboard" className="brand cursor-pointer">
             <span className="mark"></span>
             MidRoll
-          </div>
+          </Link>
           <button 
             onClick={() => setIsCollapsed(true)}
             className="icon-btn hover:bg-slate-100 transition rounded-lg p-1 w-8 h-8 flex items-center justify-center shrink-0"
@@ -62,50 +65,34 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, isColla
         {/* Navigation links */}
         <nav className="nav">
           <h4>Workspace</h4>
-          <a
-            href="#dashboard"
-            className={activeTab === 'dashboard' ? 'active' : ''}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('dashboard');
-            }}
+          <Link
+            href="/dashboard"
+            className={pathname === '/dashboard' ? 'active' : ''}
           >
             <i className="dot"></i>
             Dashboard
-          </a>
-          <a
-            href="#transactions"
-            className={activeTab === 'transactions' ? 'active' : ''}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('transactions');
-            }}
+          </Link>
+          <Link
+            href="/transactions"
+            className={pathname === '/transactions' ? 'active' : ''}
           >
             <i className="dot"></i>
             Transactions
-          </a>
-          <a
-            href="#contacts"
-            className={activeTab === 'contacts' ? 'active' : ''}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('contacts');
-            }}
+          </Link>
+          <Link
+            href="/contacts"
+            className={pathname === '/contacts' ? 'active' : ''}
           >
             <i className="dot"></i>
             Contacts
-          </a>
-          <a
-            href="#settings"
-            className={activeTab === 'settings' ? 'active' : ''}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('settings');
-            }}
+          </Link>
+          <Link
+            href="/settings"
+            className={pathname === '/settings' ? 'active' : ''}
           >
             <i className="dot"></i>
             Settings
-          </a>
+          </Link>
         </nav>
 
         {/* User profile connection indicator */}

@@ -20,6 +20,8 @@ import {
   Sparkles,
   Scale
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLaceWallet } from '@/lib/lace-wallet-context';
 import { BoomerangVideoBg } from './BoomerangVideoBg';
 import { LaceWalletModal } from './LaceWalletModal';
@@ -33,6 +35,8 @@ const LogoMark = () => (
 );
 
 export function LandingPage() {
+  const router = useRouter();
+  const { isConnected } = useLaceWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'zk-payroll' | 'shielded-treasury' | 'compliance'>('zk-payroll');
   const [activeStep, setActiveStep] = useState<number>(1);
@@ -74,13 +78,23 @@ export function LandingPage() {
         </div>
 
         {/* CTA Right - Vibrant Accent Button */}
-        <button 
-          onClick={() => setIsWalletModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
-        >
-          <Wallet className="w-4 h-4 text-[#17211b]" />
-          <span>Connect Wallet</span>
-        </button>
+        {isConnected ? (
+          <Link 
+            href="/dashboard"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
+          >
+            <Wallet className="w-4 h-4 text-[#17211b]" />
+            <span>Go to Dashboard</span>
+          </Link>
+        ) : (
+          <button 
+            onClick={() => setIsWalletModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
+          >
+            <Wallet className="w-4 h-4 text-[#17211b]" />
+            <span>Connect Wallet</span>
+          </button>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -109,13 +123,23 @@ export function LandingPage() {
             </p>
             
             <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
-              <button 
-                onClick={() => setIsWalletModalOpen(true)}
-                className="flex items-center gap-2.5 px-8 py-3.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_10px_30px_rgba(215,255,101,0.7)] hover:-translate-y-[3px] active:translate-y-0 transition-all duration-300"
-              >
-                <Wallet className="w-4 h-4 text-[#17211b]" />
-                <span>Connect Wallet to Launch</span>
-              </button>
+              {isConnected ? (
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2.5 px-8 py-3.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_10px_30px_rgba(215,255,101,0.7)] hover:-translate-y-[3px] active:translate-y-0 transition-all duration-300"
+                >
+                  <Wallet className="w-4 h-4 text-[#17211b]" />
+                  <span>Go to Dashboard</span>
+                </Link>
+              ) : (
+                <button 
+                  onClick={() => setIsWalletModalOpen(true)}
+                  className="flex items-center gap-2.5 px-8 py-3.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_10px_30px_rgba(215,255,101,0.7)] hover:-translate-y-[3px] active:translate-y-0 transition-all duration-300"
+                >
+                  <Wallet className="w-4 h-4 text-[#17211b]" />
+                  <span>Connect Wallet to Launch</span>
+                </button>
+              )}
               
               <a 
                 href="#how-it-works"

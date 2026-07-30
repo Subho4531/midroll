@@ -27,18 +27,24 @@ const LaceWalletContext = createContext<LaceWalletState | undefined>(undefined);
 
 const LOCAL_STORAGE_KEY = 'midroll_lace_wallet_state_v2';
 
-// Helper: find the Lace wallet in window.midnight
+// Helper: find the Lace or 1AM wallet in window.midnight
 const findLaceWallet = (): any | null => {
   if (typeof window === 'undefined') return null;
   const win = window as any;
   if (!win.midnight) return null;
-  // Prefer the known Midnight Lace key
+  // Prefer the known Midnight Lace/1AM keys
   if (win.midnight.mnLace) return win.midnight.mnLace;
   if (win.midnight.lace) return win.midnight.lace;
-  // CAIP-372 UUID keys — find by name/rdns
+  if (win.midnight['1am']) return win.midnight['1am'];
+  
+  // CAIP-372 UUID keys — find by name/rdns/brand
   const wallets = Object.values(win.midnight) as any[];
   return wallets.find(
-    (w) => w?.name?.toLowerCase().includes('lace') || w?.rdns?.toLowerCase().includes('lace')
+    (w) =>
+      w?.name?.toLowerCase().includes('lace') ||
+      w?.rdns?.toLowerCase().includes('lace') ||
+      w?.name?.toLowerCase().includes('1am') ||
+      w?.rdns?.toLowerCase().includes('1am')
   ) || wallets[0] || null;
 };
 

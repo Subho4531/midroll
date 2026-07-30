@@ -5,6 +5,18 @@ import { Badge } from '@/components/ui/badge';
 import confetti from 'canvas-confetti';
 
 import { useMidnight } from '@/hooks/useMidnight';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+
+type TxPhase = 'idle' | 'signing' | 'broadcasting' | 'confirming' | 'done';
+
+const EXPLORER_BASE = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://explorer.1am.xyz/tx';
 
 interface Contact {
   walletAddress: string;
@@ -28,10 +40,11 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
   onRedirectToContacts,
   onAddLog,
 }) => {
-  const { callCircuit, isLoading: isMidnightLoading } = useMidnight();
+  const { callCircuit, isLoading: isMidnightLoading, lastResult: midnightResult, wallet, txPhase } = useMidnight();
 
   const [recipientType, setRecipientType] = useState<'user' | 'team'>('user');
-  const [paymentRouting, setPaymentRouting] = useState<'shielded' | 'unshielded'>('shielded');
+  const [paymentRouting, setPaymentRouting] = useState<'shielded' | 'unshielded'>('unshielded');
+  const [isShieldedComingSoonOpen, setIsShieldedComingSoonOpen] = useState(false);
   
   // Team dispersal custom options
   const [teamPayMethod, setTeamPayMethod] = useState<'default' | 'custom'>('default');
@@ -57,6 +70,8 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
   const [sendProgress, setSendProgress] = useState(0);
   const [txResult, setTxResult] = useState<{ success: boolean; txHash?: string; message?: string } | null>(null);
   const [circuitLogs, setCircuitLogs] = useState<string[]>([]);
+
+
 
   const fetchRosters = async () => {
     setIsLoadingList(true);
@@ -100,6 +115,25 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
     setTxResult(null);
     setCircuitLogs([]);
 
+    const saveTransaction = async (txHash: string, type: string, amount: number, recipientCount: number, metadata: string) => {
+      try {
+        await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: wallet.walletAddress,
+            txHash,
+            type,
+            amount,
+            recipientCount,
+            metadata,
+          }),
+        });
+      } catch (e) {
+        console.warn('Failed to save transaction record:', e);
+      }
+    };
+
     try {
       if (recipientType === 'user' && selectedContact) {
         // Single user payment
@@ -110,12 +144,14 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
         const result = await callCircuit('dispatch_payment', [recipientBytes, Math.round(payAmount)], { address: selectedContact.walletAddress });
         
         if (result.success) {
+          const txHash = result.txHash || '';
           setTxResult({
             success: true,
-            txHash: result.txHash || 'tx_dummy_success',
-            message: `ZK proof verified. Single payment of ${payAmount} DUST dispatched to ${selectedContact.name}.`
+            txHash,
+            message: `Payment of ${payAmount} tNIGHT dispatched to ${selectedContact.name}.`
           });
-          onAddLog(`✓ Payment of ${payAmount} DUST to ${selectedContact.name} confirmed. Tx: ${result.txHash}`);
+          onAddLog(`✓ Payment of ${payAmount} tNIGHT to ${selectedContact.name} confirmed. Tx: ${txHash}`);
+          await saveTransaction(txHash, 'SINGLE_PAYMENT', payAmount, 1, selectedContact.name);
           confetti({ particleCount: 50, spread: 60 });
         } else {
           throw new Error(result.error || 'Circuit execution failed');
@@ -160,12 +196,14 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
           );
 
           if (result.success) {
+            const txHash = result.txHash || '';
             setTxResult({
               success: true,
-              txHash: result.txHash || 'tx_dummy_batch',
-              message: `ZK Batch proof verified. Paid ${totalPay} DUST to ${payouts.length} team members in 1 transaction.`
+              txHash,
+              message: `Batch payment of ${totalPay} tNIGHT sent to ${payouts.length} members of "${selectedTeam.name}" in 1 transaction.`
             });
-            onAddLog(`✓ Batch payout to team "${selectedTeam.name}" confirmed. Tx: ${result.txHash}`);
+            onAddLog(`✓ Batch payout to team "${selectedTeam.name}" confirmed. Tx: ${txHash}`);
+            await saveTransaction(txHash, 'BATCH_PAYMENT', totalPay, payouts.length, `Team: ${selectedTeam.name} (${payouts.length} members)`);
             confetti({ particleCount: 80, spread: 80 });
           } else {
             throw new Error(result.error || 'Batch circuit execution failed');
@@ -184,21 +222,24 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
             const result = await callCircuit('dispatch_payment', [p.bytes, p.amount], { address: p.address });
             if (result.success) {
               successCount++;
-              lastTxHash = result.txHash || '';
-              onAddLog(`✓ Signed and sent payout to ${p.name}. Tx: ${lastTxHash}`);
+              const hash = result.txHash || '';
+              lastTxHash = hash;
+              onAddLog(`✓ Signed and sent payout to ${p.name}. Tx: ${hash}`);
+              await saveTransaction(hash, 'SEQUENTIAL_PAYMENT', p.amount, 1, p.name);
               setSendProgress(Math.round(((i + 1) / payouts.length) * 100));
             } else {
               onAddLog(`❌ Payout to ${p.name} was rejected or failed: ${result.error}`);
             }
           }
 
+          const allDone = successCount > 0;
           setTxResult({
-            success: successCount > 0,
-            txHash: lastTxHash || 'tx_dummy_seq',
-            message: `Sequential run complete. Successfully dispatched ${successCount}/${payouts.length} member payments.`
+            success: allDone,
+            txHash: lastTxHash,
+            message: `Sequential payroll complete. ${successCount}/${payouts.length} payments confirmed.`
           });
           onAddLog(`✓ Team payout run completed. ${successCount} successful signatures.`);
-          if (successCount > 0) confetti({ particleCount: 60, spread: 60 });
+          if (allDone) confetti({ particleCount: 60, spread: 60 });
         }
       }
     } catch (err: any) {
@@ -271,7 +312,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setPaymentRouting('shielded')}
+                onClick={() => setIsShieldedComingSoonOpen(true)}
                 className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ${paymentRouting === 'shielded' ? 'bg-[#eaf1ea] text-ink border-ink font-bold shadow-sm' : 'bg-white text-muted border-line hover:text-ink hover:border-ink'}`}
               >
                 <Lock className="w-3.5 h-3.5" />
@@ -487,7 +528,17 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
             {isSending ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                <span>{paymentRouting === 'shielded' ? 'Generating ZK Proof...' : 'Broadcasting Transaction...'}</span>
+                <span>
+                  {txPhase === 'signing' && 'Awaiting Wallet Approval...'}
+                  {txPhase === 'broadcasting' && 'Broadcasting to Network...'}
+                  {txPhase === 'confirming' && 'Confirming On-Chain...'}
+                  {(txPhase === 'idle' || txPhase === 'done') && 'Processing...'}
+                </span>
+              </>
+            ) : txPhase === 'done' ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-lime" />
+                <span>Payment Complete ✓</span>
               </>
             ) : (
               <>
@@ -514,22 +565,68 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
             <div className={`p-3 border rounded-xl space-y-1.5 ${txResult.success ? 'bg-[#f4fbf4] border-line' : 'bg-red-50 border-red-200'}`}>
               <div className={`flex items-center gap-1.5 text-xs font-bold ${txResult.success ? 'text-[#1c6434]' : 'text-red-800'}`}>
                 {txResult.success ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <ShieldAlert className="w-4 h-4 text-red-600" />}
-                <span>{txResult.success ? 'Payment Dispatched Successfully' : 'Dispersal Interrupted'}</span>
+                <span>{txResult.success ? 'Payment Confirmed On-Chain' : 'Dispersal Interrupted'}</span>
               </div>
               <p className={`text-[11px] leading-relaxed ${txResult.success ? 'text-[#31834b]' : 'text-red-700'}`}>
                 {txResult.message && txResult.message.length > 120
                   ? txResult.message.slice(0, 120) + '…'
                   : txResult.message}
               </p>
-              {txResult.success && txResult.txHash && txResult.txHash !== 'pending_confirmation' && (
-                <div className="text-[9px] font-mono text-[#4c855a] break-all select-all leading-tight">
-                  Tx: {txResult.txHash.slice(0, 40)}{txResult.txHash.length > 40 ? '…' : ''}
+              {txResult.success && txResult.txHash && (
+                <div className="pt-1 space-y-1">
+                  <div className="text-[9px] font-mono text-[#4c855a] break-all select-all leading-tight">
+                    Tx Hash: {txResult.txHash}
+                  </div>
+                  <a
+                    href={`${EXPLORER_BASE}/${txResult.txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[9px] font-mono text-[#31834b] hover:underline"
+                  >
+                    ↗ View on Midnight Explorer
+                  </a>
                 </div>
               )}
             </div>
           )}
         </form>
       </div>
+
+      <Dialog open={isShieldedComingSoonOpen} onOpenChange={setIsShieldedComingSoonOpen}>
+        <DialogContent className="sm:max-w-[420px] rounded-2xl border border-line bg-card p-6 ">
+          <DialogHeader className="space-y-3 flex flex-col items-center">
+            <div className="flex justify-center pt-2">
+              <div className="bg-[#f8faf8] border border-line text-ink px-4 py-2.5 rounded-xl font-mono text-center font-bold tracking-tight shadow-sm select-none">
+                <div className="text-xl mb-1"> ( 0 _ 0 ) </div>
+              </div>
+            </div>
+            <DialogTitle className="text-center font-extrabold text-lg text-ink">
+              Shielded Payments Coming Soon!
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs text-muted leading-relaxed">
+              Private shielded ZK payroll processing is currently under integration. Secure transactions with zero-knowledge proofs are being finalized.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="my-4 p-3.5 bg-slate-50 border border-line/60 rounded-xl space-y-1">
+            <div className="text-[9px] uppercase tracking-wider font-bold text-slate-400 font-mono">System Note:</div>
+            <p className="text-xs text-ink font-semibold">
+              To continue, please use the Public (Unshielded) payments.
+            </p>
+          </div>
+
+          <DialogFooter className="pt-2">
+            <button
+              onClick={() => setIsShieldedComingSoonOpen(false)}
+              className="new w-full justify-center h-10 font-bold text-xs"
+              style={{ background: 'var(--lime)', color: 'var(--ink)' }}
+              type="button"
+            >
+              Understand & Continue
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
