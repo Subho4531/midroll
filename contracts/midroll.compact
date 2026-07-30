@@ -14,6 +14,16 @@ export circuit dispatch_multi_payment(recipients: Vector<10, Bytes<32>>, amounts
     dummy = 1;
 }
 
+// Shielded single payment validation circuit
+export circuit dispatch_shielded_payment(recipient: Bytes<32>, amount: Uint<32>): [] {
+    dummy = 1;
+}
+
+// Shielded multi payment validation circuit
+export circuit dispatch_shielded_multi_payment(recipients: Vector<10, Bytes<32>>, amounts: Vector<10, Uint<32>>, count: Uint<8>): [] {
+    dummy = 1;
+}
+
 export circuit claim_shielded_expense(amount: Uint<32>): [] {
     dummy = 1;
 }

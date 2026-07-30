@@ -52,10 +52,88 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function TransactionsPage() {
-  const { isConnected, walletAddress } = useLaceWallet();
+  const { isConnected, walletAddress, connectedApi } = useLaceWallet();
   const [records, setRecords] = useState<TxRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const syncPendingTransactions = useCallback(async (dbRecords: TxRecord[]): Promise<TxRecord[]> => {
+    if (!connectedApi || !walletAddress) return dbRecords;
+    const pending = dbRecords.filter(r => r.status === 'PENDING');
+    if (pending.length === 0) return dbRecords;
+
+    try {
+      // Fetch latest history from wallet (check both pages 1 and 0 for safety)
+      let walletHistory: any[] = [];
+      try {
+        const h1 = await connectedApi.getTxHistory(1, 20);
+        if (Array.isArray(h1)) walletHistory.push(...h1);
+        const h0 = await connectedApi.getTxHistory(0, 20);
+        if (Array.isArray(h0)) walletHistory.push(...h0);
+      } catch (e) {
+        console.warn('Failed to fetch wallet history for sync:', e);
+        return dbRecords;
+      }
+
+      // Filter finalized or confirmed on-chain hashes
+      const confirmedHashes = walletHistory
+        .filter(entry => entry?.txHash && (entry.txStatus?.status === 'finalized' || entry.txStatus?.status === 'confirmed'))
+        .map(entry => entry.txHash);
+
+      if (confirmedHashes.length === 0) return dbRecords;
+
+      // Find which hashes are already known to the DB
+      const knownHashes = new Set(
+        dbRecords
+          .filter(r => r.status === 'CONFIRMED')
+          .map(r => r.txHash)
+      );
+
+      // Filter hashes from the wallet history that are NOT yet in the DB
+      const unassociatedHashes = confirmedHashes.filter(hash => !knownHashes.has(hash));
+      if (unassociatedHashes.length === 0) return dbRecords;
+
+      // Match pending records with unassociated hashes (oldest pending matches oldest unassociated)
+      const sortedPending = [...pending].sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+
+      const sortedHashes = [...unassociatedHashes].reverse();
+      const updatedRecords = [...dbRecords];
+
+      for (let i = 0; i < sortedPending.length && i < sortedHashes.length; i++) {
+        const pendingRecord = sortedPending[i];
+        const realHash = sortedHashes[i];
+
+        try {
+          const updateRes = await fetch('/api/transactions', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              txHash: pendingRecord.txHash,
+              status: 'CONFIRMED',
+              newTxHash: realHash
+            })
+          });
+
+          if (updateRes.ok) {
+            const targetIdx = updatedRecords.findIndex(r => r.id === pendingRecord.id);
+            if (targetIdx !== -1) {
+              updatedRecords[targetIdx].txHash = realHash;
+              updatedRecords[targetIdx].status = 'CONFIRMED';
+            }
+          }
+        } catch (err) {
+          console.error('Failed to update pending transaction status:', err);
+        }
+      }
+
+      return updatedRecords;
+    } catch (e) {
+      console.warn('Error during pending transactions sync:', e);
+      return dbRecords;
+    }
+  }, [connectedApi, walletAddress]);
 
   const fetchTransactions = useCallback(async () => {
     if (!walletAddress) return;
@@ -65,13 +143,16 @@ export function TransactionsPage() {
       const res = await fetch(`/api/transactions?walletAddress=${encodeURIComponent(walletAddress)}`);
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();
-      setRecords(Array.isArray(data) ? data : []);
+      const dbRecords = Array.isArray(data) ? data : [];
+      
+      const syncedRecords = await syncPendingTransactions(dbRecords);
+      setRecords(syncedRecords);
     } catch (e: any) {
       setError(e.message || 'Failed to load transactions');
     } finally {
       setIsLoading(false);
     }
-  }, [walletAddress]);
+  }, [walletAddress, syncPendingTransactions]);
 
   useEffect(() => {
     if (isConnected && walletAddress) {
@@ -195,33 +276,53 @@ export function TransactionsPage() {
                       {rec.amount.toLocaleString()} tNIGHT
                     </td>
                     <td className="py-4 pr-4">
-                      <div className="flex items-center gap-0.5">
-                        <span className="text-[10px] font-mono text-muted select-all">
-                          {rec.txHash.slice(0, 14)}…{rec.txHash.slice(-6)}
+                      {rec.status === 'PENDING' ? (
+                        <span className="text-[10px] font-mono text-amber-600 select-none italic font-medium">
+                          Awaiting confirmation...
                         </span>
-                        <CopyButton text={rec.txHash} />
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-0.5">
+                          <span className="text-[10px] font-mono text-muted select-all">
+                            {rec.txHash.slice(0, 14)}…{rec.txHash.slice(-6)}
+                          </span>
+                          <CopyButton text={rec.txHash} />
+                        </div>
+                      )}
                     </td>
                     <td className="py-4 pr-4 text-[10px] font-mono text-muted whitespace-nowrap">
                       {formatDate(rec.createdAt)}
                     </td>
                     <td className="py-4 pr-4">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#c6f6d5] border border-[#a3e9b9] text-[#1c6434]">
-                        <CheckCircle2 className="w-3 h-3" />
-                        {rec.status}
-                      </span>
+                      {rec.status === 'PENDING' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#fef3c7] border border-[#fde68a] text-[#92400e] animate-pulse">
+                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          PENDING
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#c6f6d5] border border-[#a3e9b9] text-[#1c6434]">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {rec.status}
+                        </span>
+                      )}
                     </td>
                     <td className="py-4 text-right">
-                      <a
-                        href={`${EXPLORER_BASE}/${rec.txHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-line bg-white hover:bg-[#eef4ee] hover:border-[#31834b] text-[10px] font-bold text-ink transition"
-                        title="View on Midnight Explorer"
-                      >
-                        <ArrowUpRight className="w-3 h-3 text-[#31834b]" />
-                        Explorer
-                      </a>
+                      {rec.status === 'PENDING' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-line bg-slate-50 text-[10px] font-bold text-slate-400 select-none opacity-50">
+                          <ArrowUpRight className="w-3 h-3" />
+                          Awaiting indexing...
+                        </span>
+                      ) : (
+                        <a
+                          href={`${EXPLORER_BASE}/${rec.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-line bg-white hover:bg-[#eef4ee] hover:border-[#31834b] text-[10px] font-bold text-ink transition"
+                          title="View on Midnight Explorer"
+                        >
+                          <ArrowUpRight className="w-3 h-3 text-[#31834b]" />
+                          Explorer
+                        </a>
+                      )}
                     </td>
                   </tr>
                 ))}

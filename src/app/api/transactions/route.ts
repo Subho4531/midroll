@@ -32,7 +32,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { walletAddress, txHash, type, amount, recipientCount, metadata } = await req.json();
+    const { walletAddress, txHash, type, amount, recipientCount, status, metadata } = await req.json();
 
     if (!walletAddress || !txHash || !type || amount === undefined) {
       return NextResponse.json({ error: 'Missing required fields: walletAddress, txHash, type, amount' }, { status: 400 });
@@ -53,6 +53,7 @@ export async function POST(req: Request) {
         type,
         amount: Number(amount),
         recipientCount: recipientCount ? Number(recipientCount) : 1,
+        status: status ? String(status) : 'CONFIRMED',
         metadata: metadata ? String(metadata) : null,
       },
     });
@@ -60,6 +61,29 @@ export async function POST(req: Request) {
     return NextResponse.json(record);
   } catch (error: any) {
     console.error('Failed to create transaction record:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const { txHash, status, newTxHash } = await req.json();
+
+    if (!txHash || !status) {
+      return NextResponse.json({ error: 'Missing required fields: txHash, status' }, { status: 400 });
+    }
+
+    const updated = await prisma.transactionRecord.updateMany({
+      where: { txHash },
+      data: {
+        status,
+        txHash: newTxHash ? newTxHash : undefined,
+      },
+    });
+
+    return NextResponse.json({ success: true, count: updated.count });
+  } catch (error: any) {
+    console.error('Failed to update transaction record:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

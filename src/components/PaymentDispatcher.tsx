@@ -40,7 +40,8 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
   onRedirectToContacts,
   onAddLog,
 }) => {
-  const { callCircuit, isLoading: isMidnightLoading, lastResult: midnightResult, wallet, txPhase } = useMidnight();
+  const { callCircuit, isLoading: isMidnightLoading, lastResult: midnightResult, wallet, txPhase, shieldedTokens, fetchShieldedTokens } = useMidnight();
+  const [selectedPayoutToken, setSelectedPayoutToken] = useState('9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc');
 
   const [recipientType, setRecipientType] = useState<'user' | 'team'>('user');
   const [paymentRouting, setPaymentRouting] = useState<'shielded' | 'unshielded'>('unshielded');
@@ -121,7 +122,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
     setTxResult(null);
     setCircuitLogs([]);
 
-    const saveTransaction = async (txHash: string, type: string, amount: number, recipientCount: number, metadata: string) => {
+    const saveTransaction = async (txHash: string, type: string, amount: number, recipientCount: number, metadata: string, status = 'CONFIRMED') => {
       try {
         await fetch('/api/transactions', {
           method: 'POST',
@@ -133,6 +134,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
             amount,
             recipientCount,
             metadata,
+            status,
           }),
         });
       } catch (e) {
@@ -147,17 +149,26 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
         onAddLog(`Initiating ${paymentRouting} payment of ${payAmount} DUST to ${selectedContact.name}`);
         
         const recipientBytes = addressToBytes32(selectedContact.walletAddress);
-        const result = await callCircuit('dispatch_payment', [recipientBytes, Math.round(payAmount)], { address: selectedContact.walletAddress });
+        const result = await callCircuit('dispatch_payment', [recipientBytes, Math.round(payAmount)], {
+          address: selectedContact.walletAddress,
+          routing: paymentRouting,
+          tokenColor: selectedPayoutToken
+        });
         
         if (result.success) {
           const txHash = result.txHash || '';
+          const isPending = result.status === 'PENDING';
           setTxResult({
             success: true,
             txHash,
-            message: `Payment of ${payAmount} tNIGHT dispatched to ${selectedContact.name}.`
+            message: isPending
+              ? `Payment of ${payAmount} tNIGHT submitted and pending confirmation.`
+              : `Payment of ${payAmount} tNIGHT dispatched to ${selectedContact.name}.`
           });
-          onAddLog(`✓ Payment of ${payAmount} tNIGHT to ${selectedContact.name} confirmed. Tx: ${txHash}`);
-          await saveTransaction(txHash, 'SINGLE_PAYMENT', payAmount, 1, selectedContact.name);
+          onAddLog(isPending
+            ? `Transaction submitted successfully. Indexer took too long, marked as PENDING: ${txHash}`
+            : `Payment of ${payAmount} tNIGHT to ${selectedContact.name} confirmed. Tx: ${txHash}`);
+          await saveTransaction(txHash, 'SINGLE_PAYMENT', payAmount, 1, selectedContact.name, result.status || 'CONFIRMED');
           confetti({ particleCount: 50, spread: 60 });
         } else {
           throw new Error(result.error || 'Circuit execution failed');
@@ -198,18 +209,27 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
           const result = await callCircuit(
             'dispatch_multi_payment',
             [recipientVectors, amountVectors, payouts.length],
-            { payouts: payouts.map(p => ({ address: p.address, amount: p.amount })) }
+            {
+              payouts: payouts.map(p => ({ address: p.address, amount: p.amount })),
+              routing: paymentRouting,
+              tokenColor: selectedPayoutToken
+            }
           );
 
           if (result.success) {
             const txHash = result.txHash || '';
+            const isPending = result.status === 'PENDING';
             setTxResult({
               success: true,
               txHash,
-              message: `Batch payment of ${totalPay} tNIGHT sent to ${payouts.length} members of "${selectedTeam.name}" in 1 transaction.`
+              message: isPending
+                ? `Batch payment of ${totalPay} tNIGHT submitted and pending confirmation.`
+                : `Batch payment of ${totalPay} tNIGHT sent to ${payouts.length} members of "${selectedTeam.name}" in 1 transaction.`
             });
-            onAddLog(`✓ Batch payout to team "${selectedTeam.name}" confirmed. Tx: ${txHash}`);
-            await saveTransaction(txHash, 'BATCH_PAYMENT', totalPay, payouts.length, `Team: ${selectedTeam.name} (${payouts.length} members)`);
+            onAddLog(isPending
+              ? `Batch transaction submitted successfully. Indexer took too long, marked as PENDING: ${txHash}`
+              : `✓ Batch payout to team "${selectedTeam.name}" confirmed. Tx: ${txHash}`);
+            await saveTransaction(txHash, 'BATCH_PAYMENT', totalPay, payouts.length, `Team: ${selectedTeam.name} (${payouts.length} members)`, result.status || 'CONFIRMED');
             confetti({ particleCount: 80, spread: 80 });
           } else {
             throw new Error(result.error || 'Batch circuit execution failed');
@@ -225,16 +245,23 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
             const p = payouts[i];
             onAddLog(`[${i+1}/${payouts.length}] Prompting signature for ${p.name} (${p.amount} DUST)...`);
             
-            const result = await callCircuit('dispatch_payment', [p.bytes, p.amount], { address: p.address });
+            const result = await callCircuit('dispatch_payment', [p.bytes, p.amount], {
+              address: p.address,
+              routing: paymentRouting,
+              tokenColor: selectedPayoutToken
+            });
             if (result.success) {
               successCount++;
               const hash = result.txHash || '';
               lastTxHash = hash;
-              onAddLog(`✓ Signed and sent payout to ${p.name}. Tx: ${hash}`);
-              await saveTransaction(hash, 'SEQUENTIAL_PAYMENT', p.amount, 1, p.name);
+              const isPending = result.status === 'PENDING';
+              onAddLog(isPending
+                ? `Payout to ${p.name} submitted. Marked as PENDING: ${hash}`
+                : `✓ Signed and sent payout to ${p.name}. Tx: ${hash}`);
+              await saveTransaction(hash, 'SEQUENTIAL_PAYMENT', p.amount, 1, p.name, result.status || 'CONFIRMED');
               setSendProgress(Math.round(((i + 1) / payouts.length) * 100));
             } else {
-              onAddLog(`❌ Payout to ${p.name} was rejected or failed: ${result.error}`);
+              onAddLog(`Payout to ${p.name} was rejected or failed: ${result.error}`);
             }
           }
 
@@ -254,7 +281,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
         success: false,
         message: err.message || err.toString()
       });
-      onAddLog(`❌ Payroll Dispatch Failed: ${err.message || err.toString()}`);
+      onAddLog(`Payroll Dispatch Failed: ${err.message || err.toString()}`);
     } finally {
       setIsSending(false);
       setSendProgress(100);
@@ -318,7 +345,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setIsShieldedComingSoonOpen(true)}
+                onClick={() => setPaymentRouting('shielded')}
                 className={`flex-1 py-2 px-3 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ${paymentRouting === 'shielded' ? 'bg-[#eaf1ea] text-ink border-ink font-bold shadow-sm' : 'bg-white text-muted border-line hover:text-ink hover:border-ink'}`}
               >
                 <Lock className="w-3.5 h-3.5" />
@@ -334,6 +361,50 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Payout Token Selector (Only for Shielded) */}
+          {paymentRouting === 'shielded' && (
+            <div className="space-y-2 animate-fadeIn">
+              <div className="flex items-center justify-between">
+                <label className="block text-[10px] text-muted uppercase font-bold tracking-wider font-mono">
+                  Payout Token (Shielded)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fetchShieldedTokens?.()}
+                  className="text-xs text-[#31834b] hover:text-ink font-bold flex items-center gap-1 font-mono"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Refresh List
+                </button>
+              </div>
+              <div className="relative">
+                <select
+                  value={selectedPayoutToken}
+                  onChange={(e) => setSelectedPayoutToken(e.target.value)}
+                  className="w-full h-10 px-3 rounded-lg border border-line bg-white text-xs font-bold text-ink focus:outline-none focus:border-ink appearance-none cursor-pointer"
+                >
+                  {/* Always include the custom USDC coin */}
+                  <option value="9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc">
+                    USDC (9e3544c9fc08…28dc)
+                  </option>
+                  {/* Include any other fetched tokens from the wallet */}
+                  {(shieldedTokens || [])
+                    .filter((t) => t !== '9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc')
+                    .map((token) => (
+                      <option key={token} value={token}>
+                        {token === '0000000000000000000000000000000000000000000000000000000000000000'
+                          ? 'tNIGHT (Native)'
+                          : `Token (${token.slice(0, 12)}…)`}
+                      </option>
+                    ))}
+                </select>
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-muted">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* User selector with search slide-down */}
           {recipientType === 'user' && (
@@ -360,7 +431,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
                       placeholder="Search contacts..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-8 h-8 text-xs w-full"
+                      className="!pl-9 h-8 text-xs w-full"
                     />
                   </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLaceWallet } from '@/lib/lace-wallet-context';
 
 export interface CircuitCallResult {
@@ -8,6 +8,7 @@ export interface CircuitCallResult {
   txHash: string | null;
   error: string | null;
   logs: string[];
+  status?: 'PENDING' | 'CONFIRMED';
 }
 
 // Helper: find the Lace or 1AM wallet in window.midnight
@@ -130,9 +131,9 @@ const ensureLiveApi = async (
       addLog('✓ Wallet connection live.');
       return cachedApi;
     }
-    addLog('⚠️ Port disconnected — reconnecting...');
+    addLog('Port disconnected — reconnecting...');
   } catch (e: any) {
-    addLog(`⚠️ Connection check failed — reconnecting...`);
+    addLog(`Connection check failed — reconnecting...`);
   }
 
   const laceWallet = findLaceWallet();
@@ -148,13 +149,36 @@ export const useMidnight = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastResult, setLastResult] = useState<CircuitCallResult | null>(null);
   const [txPhase, setTxPhase] = useState<'idle' | 'signing' | 'broadcasting' | 'confirming' | 'done'>('idle');
+  const [shieldedTokens, setShieldedTokens] = useState<string[]>([]);
 
-  const contractAddress = '85dd06179800830b2d181f3238ecf3b94a0ae820bcc62953e50c0f9d26743a7d';
+  const fetchShieldedTokens = useCallback(async () => {
+    if (!wallet.isConnected || !wallet.connectedApi) return;
+    try {
+      const freshApi = await ensureLiveApi(wallet.connectedApi, wallet.network, () => {});
+      const balances = await freshApi.getShieldedBalances();
+      setShieldedTokens(Object.keys(balances || {}));
+    } catch (e) {
+      console.warn('Failed to fetch shielded balances:', e);
+    }
+  }, [wallet.isConnected, wallet.connectedApi, wallet.network]);
+
+  useEffect(() => {
+    if (wallet.isConnected && wallet.connectedApi) {
+      fetchShieldedTokens();
+    }
+  }, [wallet.isConnected, wallet.connectedApi, fetchShieldedTokens]);
+
+  const contractAddress = 'd38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f';
 
   const callCircuit = async (
     circuitName: 'claim_shielded_expense' | 'cast_shielded_vote' | 'dispatch_payment' | 'dispatch_multi_payment',
     args: any[],
-    recipientInfo?: { address?: string; payouts?: { address: string; amount: number }[] }
+    recipientInfo?: {
+      address?: string;
+      payouts?: { address: string; amount: number }[];
+      routing?: 'shielded' | 'unshielded';
+      tokenColor?: string;
+    }
   ): Promise<CircuitCallResult> => {
     setIsLoading(true);
     setTxPhase('signing');
@@ -188,23 +212,32 @@ export const useMidnight = () => {
           addLog(`Token type: ${tokenType.slice(0, 8)}…`);
         }
       } catch (e: any) {
-        addLog(`⚠️ Token type fetch failed, using default.`);
+        addLog(`Token type fetch failed, using default.`);
       }
 
       let finalTxHash = '';
+      let isPending = false;
 
       if (circuitName === 'dispatch_payment' && recipientInfo?.address) {
         const payAmt = Number(args[1]);
-        addLog(`→ Sending ${payAmt} tNIGHT to ${shortAddr(recipientInfo.address)}`);
+        const isShielded = recipientInfo.routing === 'shielded';
+        const label = isShielded ? 'USDC (Shielded)' : 'tNIGHT';
+        addLog(`→ Sending ${payAmt} ${label} to ${shortAddr(recipientInfo.address)}`);
         addLog('Awaiting Lace wallet signature...');
 
         // Get the latest transaction hash *before* we submit the new one
         const lastKnownHash = await getLatestTxHash(connectedApi);
 
+        // Resolve token color
+        const targetToken = isShielded 
+          ? (recipientInfo.tokenColor || '9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc') 
+          : tokenType;
+        const targetKind = isShielded ? 'shielded' as const : 'unshielded' as const;
+
         // Per README: makeTransfer receives the array and returns the whole { tx } object.
         const txObject = await connectedApi.makeTransfer([{
-          kind: 'unshielded' as const,
-          type: tokenType,
+          kind: targetKind,
+          type: targetToken,
           value: BigInt(Math.round(payAmt)) * 1_000_000n,
           recipient: recipientInfo.address,
         }]);
@@ -218,22 +251,41 @@ export const useMidnight = () => {
         setTxPhase('confirming');
         addLog('✓ Transaction submitted. Awaiting indexer confirmation...');
 
-        // Poll getTxHistory for the real on-chain hash — only accept different hash
-        finalTxHash = await pollForTxHash(connectedApi, lastKnownHash, addLog);
+        try {
+          // Poll getTxHistory for the real on-chain hash — only accept different hash
+          finalTxHash = await pollForTxHash(connectedApi, lastKnownHash, addLog);
+        } catch (err: any) {
+          console.warn('Indexer did not respond in time. Marking transaction as PENDING.');
+          addLog('Indexer did not respond in time. Marking transaction as PENDING.');
+          finalTxHash = `pending_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+          isPending = true;
+        }
 
-        await wallet.transferDust(payAmt);
+        if (isShielded) {
+          await wallet.transferShielded(payAmt);
+        } else {
+          await wallet.transferDust(payAmt);
+        }
 
       } else if (circuitName === 'dispatch_multi_payment' && recipientInfo?.payouts) {
         const total = recipientInfo.payouts.reduce((s, p) => s + p.amount, 0);
-        addLog(`→ Batch: ${recipientInfo.payouts.length} recipients, ${total} tNIGHT total`);
+        const isShielded = recipientInfo.routing === 'shielded';
+        const label = isShielded ? 'USDC (Shielded)' : 'tNIGHT';
+        addLog(`→ Batch: ${recipientInfo.payouts.length} recipients, ${total} ${label} total`);
         addLog('Awaiting Lace wallet signature...');
 
         // Get the latest transaction hash *before* we submit the new one
         const lastKnownHash = await getLatestTxHash(connectedApi);
 
+        // Resolve token color
+        const targetToken = isShielded 
+          ? (recipientInfo.tokenColor || '9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc') 
+          : tokenType;
+        const targetKind = isShielded ? 'shielded' as const : 'unshielded' as const;
+
         const desiredOutputs = recipientInfo.payouts.map((p) => ({
-          kind: 'unshielded' as const,
-          type: tokenType,
+          kind: targetKind,
+          type: targetToken,
           value: BigInt(Math.round(p.amount)) * 1_000_000n,
           recipient: p.address,
         }));
@@ -250,10 +302,21 @@ export const useMidnight = () => {
         setTxPhase('confirming');
         addLog(`✓ Batch submitted (${recipientInfo.payouts.length} recipients). Awaiting indexer confirmation...`);
 
-        // Poll getTxHistory for the real on-chain hash
-        finalTxHash = await pollForTxHash(connectedApi, lastKnownHash, addLog);
+        try {
+          // Poll getTxHistory for the real on-chain hash
+          finalTxHash = await pollForTxHash(connectedApi, lastKnownHash, addLog);
+        } catch (err: any) {
+          console.warn('Indexer did not respond in time. Marking batch transaction as PENDING.');
+          addLog('Indexer did not respond in time. Marking batch transaction as PENDING.');
+          finalTxHash = `pending_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+          isPending = true;
+        }
 
-        await wallet.transferDust(total);
+        if (isShielded) {
+          await wallet.transferShielded(total);
+        } else {
+          await wallet.transferDust(total);
+        }
 
       } else if (circuitName === 'claim_shielded_expense') {
         throw new Error('Shielded expense claims require a deployed Compact contract.');
@@ -272,6 +335,7 @@ export const useMidnight = () => {
         txHash: finalTxHash,
         error: null,
         logs: [...logs],
+        status: isPending ? 'PENDING' : 'CONFIRMED',
       };
       setLastResult(result);
       setIsLoading(false);
@@ -280,7 +344,7 @@ export const useMidnight = () => {
     } catch (err: any) {
       console.error('[useMidnight] error:', err);
       setTxPhase('idle');
-      addLog(`❌ ${err.message || String(err)}`);
+      addLog(`${err.message || String(err)}`);
       const result: CircuitCallResult = {
         success: false,
         txHash: null,
@@ -300,5 +364,7 @@ export const useMidnight = () => {
     contractAddress,
     callCircuit,
     txPhase,
+    shieldedTokens,
+    fetchShieldedTokens,
   };
 };

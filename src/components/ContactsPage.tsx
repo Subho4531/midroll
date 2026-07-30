@@ -327,7 +327,7 @@ export const ContactsPage: React.FC = () => {
                   placeholder="Search contacts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-10 w-full"
+                  className="!pl-9 h-10 w-full place"
                 />
               </div>
             </div>
@@ -405,7 +405,7 @@ export const ContactsPage: React.FC = () => {
                 placeholder="Search teams..."
                 value={teamSearchQuery}
                 onChange={(e) => setTeamSearchQuery(e.target.value)}
-                className="pl-9 h-10 w-full"
+                className="!pl-9 h-10 w-full"
               />
             </div>
 
