@@ -10,6 +10,7 @@ import { WalletConnect } from '@/components/WalletConnect';
 import { useLaceWallet } from '@/lib/lace-wallet-context';
 import { ContactsPage } from '@/components/ContactsPage';
 import { PaymentDispatcher } from '@/components/PaymentDispatcher';
+import { LandingPage } from '@/components/LandingPage';
 import {
   Employee,
   ExpenseReceipt,
@@ -119,31 +120,7 @@ export default function App() {
   };
 
   if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-[var(--paper)] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        {/* Light background decorative blobs */}
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--violet)]/10 blur-[120px] rounded-full pointer-events-none"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[var(--lime)]/10 blur-[120px] rounded-full pointer-events-none"></div>
-        
-        <div className="z-10 max-w-md w-full text-center space-y-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center justify-center p-4 bg-white border border-[var(--line)] rounded-2xl shadow-sm mb-2">
-              <Shield className="w-10 h-10 text-[var(--ink)]" />
-            </div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-[var(--ink)] letter-spacing-tight">
-              MidRoll Protocol
-            </h1>
-            <p className="text-[var(--muted)] text-sm max-w-[320px] mx-auto leading-relaxed">
-              Zero-knowledge payroll distribution and shielded treasury management on the Midnight Network.
-            </p>
-          </div>
-          
-          <div className="pt-2">
-            <WalletConnect />
-          </div>
-        </div>
-      </div>
-    );
+    return <LandingPage />;
   }
 
   return (
