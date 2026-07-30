@@ -109,7 +109,7 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const connect = async (networkOverride?: MidnightNetwork) => {
     setIsConnecting(true);
     setError(null);
-    const activeNetwork = networkOverride || network;
+    const activeNetwork = (typeof networkOverride === 'string') ? networkOverride : network;
 
     try {
       const laceWallet = findLaceWallet();
