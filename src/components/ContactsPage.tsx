@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Upload, ShieldAlert, CheckCircle2, Search, Trash2, Plus, Info, ListFilter, ArrowRight } from 'lucide-react';
+import { useLaceWallet } from '@/lib/lace-wallet-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -23,6 +24,7 @@ interface Team {
 }
 
 export const ContactsPage: React.FC = () => {
+  const { walletAddress } = useLaceWallet();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,12 +57,18 @@ export const ContactsPage: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'list' | 'create-contact' | 'create-team'>('list');
 
   const fetchData = async () => {
+    if (!walletAddress) {
+      setContacts([]);
+      setTeams([]);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
       const [contactsRes, teamsRes] = await Promise.all([
-        fetch('/api/contacts'),
-        fetch('/api/teams')
+        fetch(`/api/contacts?walletAddress=${encodeURIComponent(walletAddress)}`),
+        fetch(`/api/teams?walletAddress=${encodeURIComponent(walletAddress)}`)
       ]);
 
       if (!contactsRes.ok || !teamsRes.ok) {
@@ -82,7 +90,7 @@ export const ContactsPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [walletAddress]);
 
   const handleCreateContact = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +105,8 @@ export const ContactsPage: React.FC = () => {
           name: cName,
           walletAddress: cWallet,
           purpose: cPurpose,
-          amount: Number(cAmount) || 0.0
+          amount: Number(cAmount) || 0.0,
+          adminWalletAddress: walletAddress
         })
       });
 
@@ -201,7 +210,8 @@ export const ContactsPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: tName,
-          members: membersPayload
+          members: membersPayload,
+          adminWalletAddress: walletAddress
         })
       });
 

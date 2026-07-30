@@ -15,6 +15,7 @@ const badgeVariants = cva(
         amber:
           "border-amber-500/40 bg-amber-950/80 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]",
         rose: "border-rose-500/40 bg-rose-950/80 text-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.15)]",
+        green: "border-green-900/40 bg-green-500/80 text-green-800 shadow-[0_0_10px_rgba(5,150,105,0.15)]",
         secondary:
           "border-slate-800 bg-slate-900 text-slate-300",
         outline: "text-slate-200 border-slate-700 bg-slate-900/60",

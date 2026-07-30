@@ -31,7 +31,7 @@ export default function DashboardPage() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-[#17211b] pt-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#17211b] font-serif pt-1">
             {getGreeting()}, {company ? company.name : 'Admin'}.
           </h1>
         </div>

@@ -74,11 +74,17 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
 
 
   const fetchRosters = async () => {
+    if (!wallet?.walletAddress) {
+      setContacts([]);
+      setTeams([]);
+      setIsLoadingList(false);
+      return;
+    }
     setIsLoadingList(true);
     try {
       const [contactsRes, teamsRes] = await Promise.all([
-        fetch('/api/contacts'),
-        fetch('/api/teams')
+        fetch(`/api/contacts?walletAddress=${encodeURIComponent(wallet.walletAddress)}`),
+        fetch(`/api/teams?walletAddress=${encodeURIComponent(wallet.walletAddress)}`)
       ]);
 
       if (contactsRes.ok && teamsRes.ok) {
@@ -94,7 +100,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
 
   useEffect(() => {
     fetchRosters();
-  }, []);
+  }, [wallet?.walletAddress]);
 
   const addressToBytes32 = (addr: string): Uint8Array => {
     const bytes = new Uint8Array(32);
@@ -429,7 +435,7 @@ export const PaymentDispatcher: React.FC<PaymentDispatcherProps> = ({
                 <div className="p-3 bg-[#fbfcfa] border border-line rounded-xl space-y-2">
                   <div className="flex justify-between items-center text-[10px] text-muted uppercase font-mono tracking-wider font-semibold">
                     <span>Team Roster Members</span>
-                    <Badge variant="emerald" className="text-[9px] bg-slate-100">{selectedTeam.members?.length || 0} People</Badge>
+                    <Badge variant="green" className="text-[9px] bg-slate-100">{selectedTeam.members?.length || 0} People</Badge>
                   </div>
                   <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
                     {selectedTeam.members?.map(m => (
