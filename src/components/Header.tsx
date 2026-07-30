@@ -86,13 +86,13 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) =
             <i className="dot"></i>
             Contacts
           </Link>
-          <Link
+          {/* <Link
             href="/settings"
             className={pathname === '/settings' ? 'active' : ''}
           >
             <i className="dot"></i>
             Settings
-          </Link>
+          </Link> */}
         </nav>
 
         {/* User profile connection indicator */}
