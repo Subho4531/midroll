@@ -123,7 +123,7 @@ export function LandingPage() {
             </div>
 
             <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight text-[#17211b] font-normal max-w-3xl">
-              Build lasting relationships.
+              Trust Through Privacy.
             </h1>
             <p className="max-w-xl mt-6 text-base sm:text-lg text-[#718077] leading-relaxed">
               Confidential payroll, shielded expense reimbursement, and provable compliance — built on Midnight&apos;s zero-knowledge smart contract infrastructure.
