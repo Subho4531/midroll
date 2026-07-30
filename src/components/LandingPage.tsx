@@ -41,6 +41,13 @@ export function LandingPage() {
   const [activeTab, setActiveTab] = useState<'zk-payroll' | 'shielded-treasury' | 'compliance'>('zk-payroll');
   const [activeStep, setActiveStep] = useState<number>(1);
 
+  // Auto redirect to dashboard when wallet is connected
+  useEffect(() => {
+    if (isConnected) {
+      router.push('/dashboard');
+    }
+  }, [isConnected, router]);
+
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,

@@ -72,31 +72,44 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => clearInterval(id);
   }, []);
 
-  // Restore network preference from localStorage only
+  // Restore network preference and wasConnected state from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        setNetworkState(parsed.network || 'preview');
+        const savedNetwork = parsed.network || 'preview';
+        setNetworkState(savedNetwork);
+        if (parsed.wasConnected) {
+          // Trigger auto-connect once on mount after brief extension injection pause
+          setTimeout(() => {
+            connect(savedNetwork).catch((err) => {
+              console.warn('Silent auto-connect failed:', err);
+            });
+          }, 800);
+        }
       }
     } catch (e) {
       // ignore
     }
   }, []);
 
-  // Persist only network preference
+  // Persist network preference and wasConnected status
   useEffect(() => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ network }));
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify({ network, wasConnected: isConnected })
+      );
     } catch (e) {
       // ignore
     }
-  }, [network]);
+  }, [network, isConnected]);
 
-  const connect = async () => {
+  const connect = async (networkOverride?: MidnightNetwork) => {
     setIsConnecting(true);
     setError(null);
+    const activeNetwork = networkOverride || network;
 
     try {
       const laceWallet = findLaceWallet();
@@ -110,7 +123,7 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // Connect — this triggers the Lace unlock/authorize popup if wallet is locked
       let api: any;
       if (typeof laceWallet.connect === 'function') {
-        api = await laceWallet.connect(network);
+        api = await laceWallet.connect(activeNetwork);
       } else if (typeof laceWallet.enable === 'function') {
         api = await laceWallet.enable();
       } else {
