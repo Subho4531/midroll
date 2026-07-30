@@ -1,5 +1,6 @@
 # MidRoll Protocol
-> privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements and Anonymous Employee Governance & Whistleblower Protections.
+![CI](https://github.com/Subho4531/midroll/actions/workflows/ci.yml/badge.svg)
+> Privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements and Anonymous Employee Governance & Whistleblower Protections.
 
 ## Live Demo
 [https://midroll.vercel.app/](https://midroll.vercel.app/)
@@ -12,46 +13,29 @@
 
 *(Contract compiled with Midnight Compact DSL v0.23)*
 
-## Level 2 Features & Updates 🚀
-The following features have been added for Level 2:
-1. **Dynamic Shielded Token Selection:**
-   - Integrated `connectedApi.getShieldedBalances()` to dynamically retrieve all ZK/shielded asset colors from the Lace wallet.
-   - Provided an interactive dropdown to select the payout token (defaulting to custom USDC: `9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc`) when submitting shielded payouts.
-2. **Company Multi-Tenant Isolation:**
-   - Enforced database tenant isolation across API routes (`/api/contacts`, `/api/teams`, `/api/transactions`) using the connected company's wallet address. Company rosters and transaction logs are strictly private and not shared between tenants.
-3. **Pending Transaction Sync Recovery:**
-   - Solved low indexing speed and settlement timeouts on the indexer.
-   - Wallet-approved transactions are saved as `PENDING` in the database if the indexer takes too long to confirm.
-   - On visiting the transactions page, the system auto-queries the wallet's `getTxHistory` to chronologically match and resolve pending transactions, updating their status to `CONFIRMED` in the database once found on-chain.
-   - Wallet-rejected transactions are safely caught and excluded.
-4. **UX & Auto-Redirection Enhancements:**
-   - Added auto-connect persistence on mount, remembering connection state across page reloads.
-   - Implemented immediate automatic redirection to `/dashboard` upon successful wallet connection.
-   - Safeguarded connect callbacks against browser serialization / `PointerEvent` cloning errors.
-
 ## What This Does
 MidRoll enables decentralized organizations and companies to execute confidential employee workflows without exposing sensitive financial records on-chain:
 - **Shielded Corporate Expense Reimbursements**: Employees submit zero-knowledge merchant receipt proofs attesting that expenses fall within category limits. Treasury disburses reimbursements directly to disposable stealth addresses without exposing itemized receipts, personal card numbers, or vendor details.
 - **Anonymous Employee Governance & Whistleblower Protocol**: Employees verify payroll status via ZK witnesses to vote on company polls and submit encrypted internal compliance alerts without fear of employer retaliation or identity de-anonymization.
 
 ## Privacy Model
-- **What is PUBLIC**:
+- PUBLIC:
   - `treasury_commitment`: Hash commitment of corporate payroll treasury pool.
   - `nullifier_root`: Set of spent nullifiers preventing double-claiming expenses & double-voting.
   - `active_proposals_count`: Total active DAO governance polls.
   - `aggregate_expense_disbursed`: Cumulative verified reimbursement payout.
-- **What is PRIVATE**:
+- PRIVATE:
   - `salary_amount_cents`: Employee's raw monthly compensation rate.
   - `employee_secret_key`: Secret key used for signing client-side ZK proofs.
   - `receipt_itemized_details`: Raw itemized purchase items and merchant credit card data.
   - `whistleblower_identity`: Employee name, IP address, and wallet address.
-- **What the user PROVES without revealing**:
+- PROVED without revealing:
   - Proves receipt total <= category policy limit.
   - Proves active payroll membership to cast anonymous governance votes.
   - Proves nullifier has not been spent previously.
 
 ## Privacy Claim
-Specific statement: what an on-chain observer sees vs cannot see.
+What an on-chain observer sees vs cannot see.
 An on-chain observer can only see that a valid ZK transaction was executed, that the contract state commitment has updated, and that a proof has been successfully verified. An observer **cannot** see the worker's wallet address, the itemized receipt contents, the merchant's credit card information, the voter's identity, or the whistleblower's personal details.
 
 ## Tech Stack
@@ -61,8 +45,7 @@ Midnight network, Compact, Midnight.js SDK, Next.js / React, Lace wallet
 - Lace wallet installed
 - Node.js v22
 
-## Run Locally
-
+## Setup & Run Locally
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/Subho4531/midroll.git
@@ -84,7 +67,7 @@ Midnight network, Compact, Midnight.js SDK, Next.js / React, Lace wallet
    ```bash
    npm run deploy
    ```
-   To deploy to the public Preprod/Preview network:
+   To deploy to the public Preview network:
    ```bash
    npm run deploy --network preview
    ```
@@ -95,5 +78,13 @@ Midnight network, Compact, Midnight.js SDK, Next.js / React, Lace wallet
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Demo Video
-[PLACEHOLDER — I will add the link after recording]
+## Run Tests
+```bash
+npm test
+```
+
+## CI/CD
+The CI/CD pipeline triggers on every push and pull request to the `master` and `main` branches. It validates the code quality and correctness by running a checkout step, setting up Node.js v22, installing npm dependencies, downloading and installing the Midnight Compact compiler, compiling the compact smart contracts, and executing the Vitest integration and unit tests.
+
+## Product Proposal
+See [PROPOSAL.md](file:///C:/Users/subho/OneDrive/Documents/midnight-t1/PROPOSAL.md)

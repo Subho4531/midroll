@@ -8,6 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "compile": "wsl ~/.local/bin/compact compile contracts/midroll.compact contracts/managed/midroll",
     "setup": "npx tsx scripts/setup.ts",
     "deploy": "npx tsx scripts/deploy.ts",
