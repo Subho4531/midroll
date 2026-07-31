@@ -1,7 +1,15 @@
-# MidRoll Protocol
-> privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements and Anonymous Employee Governance & Whistleblower Protections.
+# 🌌 MidRoll: Privacy-First Corporate Expense & Governance on Midnight
+
+MidRoll is a next-generation corporate expense reimbursement and employee governance platform built on the Midnight blockchain, leveraging Compact ZK smart contracts and Zero-Knowledge (ZK) proofs to ensure employee and financial privacy while providing high-fidelity corporate coordination.
+
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=netlify)](https://midroll.netlify.app/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-black?style=for-the-badge&logo=github)](https://github.com/Subho4531/midroll)
+[![CI Pipeline](https://img.shields.io/github/actions/workflow/status/Subho4531/midroll/ci.yml?branch=master&label=CI%20Pipeline&logo=github-actions&logoColor=white&style=for-the-badge)](https://github.com/Subho4531/midroll/actions/workflows/ci.yml)
+![Midnight](https://img.shields.io/badge/Midnight-Compact-blueviolet?style=for-the-badge)
+![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
 
 ---
+
 
 ## 📑 Table of Contents
 
@@ -91,8 +99,8 @@ MidRoll's core logic is governed by a Compact smart contract deployed on the Mid
 
 - **Contract Address**: `d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f`
 - **Network**: Midnight Preview Testnet
-- **Midnight Explorer Link:** [https://explorer.1am.xyz/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f](https://explorer.1am.xyz/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f)
-- **Direct Explorer URL:** https://explorer.1am.xyz/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f
+- **Midnight Explorer Link:** [https://www.midnightexplorer.com/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f](https://www.midnightexplorer.com/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f)
+- **1AM Explorer Link:** [https://explorer.1am.xyz/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f](https://explorer.1am.xyz/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f)
 
 ---
 
@@ -191,7 +199,7 @@ An on-chain observer can only see that a valid ZK transaction was executed, that
 | CI/CD badge or workflow file with passing runs | **Done** | Badge above / workflow file: [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) |
 | Demo video (1 minute) showing full functionality | **Done** | [Watch Video](https://youtu.be/6HA7Y5ENZaU) (URL: https://youtu.be/6HA7Y5ENZaU) |
 | README “privacy model” section | **Done** | See [Privacy Model](#-privacy--zk-model) |
-| Product proposal submitted for approval | **Done** | [PROPOSAL.md](PROPOSAL.md) (URL: file:///C:/Users/subho/OneDrive/Documents/midnight-t1/PROPOSAL.md) |
+| Product proposal submitted for approval | **Done** | [PROPOSAL.md](PROPOSAL.md)|
 | Minimum 10 meaningful commits | **Done** | Verified in Git logs. |
 
 ---
