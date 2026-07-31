@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,11 +7,11 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-and-test:
+  contracts:
+    name: Build and Test Contracts
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js v22
@@ -20,8 +20,65 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
+
+      - name: Install Compact Compiler
+        run: |
+          curl --proto '=https' --sv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
+          compact update
+
+      - name: Run Contract ZK Circuit Tests
+        run: npx vitest run tests/midroll.test.ts
+
+      - name: Build Contracts
+        run: |
+          export COMPACT_BACKEND=wasm
+          compact compile contracts/midroll.compact contracts/managed/midroll
+
+      - name: Upload Contract Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-artifacts
+          path: contracts/managed/midroll/
+
+  frontend:
+    name: Build and Test APP
+    runs-on: ubuntu-latest
+    needs: contracts
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: midroll
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Download Contract Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: contract-artifacts
+          path: ./contracts/managed/midroll/
 
       - name: Validate Prisma Schema
         run: npx prisma validate
@@ -29,17 +86,34 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Install Compact Compiler
-        run: |
-          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.local/bin:$PATH"
-          compact update
+      - name: Run Database Push
+        run: npx prisma db push
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/midroll
 
-      - name: Compile Compact Contracts
-        run: |
-          export COMPACT_BACKEND=wasm
-          compact compile contracts/midroll.compact contracts/managed/midroll
+      - name: Run Frontend and Backend Tests
+        run: npx vitest run tests/frontend.test.ts tests/backend.test.ts
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/midroll
 
-      - name: Run Test Suite
-        run: npm test
+      - name: Build Application
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/midroll
+          NEXT_PUBLIC_MIDNIGHT_NETWORK: preview
+          NEXT_PUBLIC_INDEXER_HTTP_URL: https://indexer.preview.midnight.network/api/v4/graphql
+          NEXT_PUBLIC_INDEXER_WS_URL: wss://indexer.preview.midnight.network/api/v4/graphql/ws
+          NEXT_PUBLIC_NODE_URL: wss://rpc.preview.midnight.network
+          NEXT_PUBLIC_PROOF_SERVER_URL: ""
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [contracts, frontend]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Deployment Gate
+        run: echo "Code integrated and validated. Ready for Netlify deployment."
