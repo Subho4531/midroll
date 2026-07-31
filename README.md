@@ -1,10 +1,5 @@
 # MidRoll Protocol
-[![CI](https://github.com/Subho4531/midroll/actions/workflows/ci.yml/badge.svg)](https://github.com/Subho4531/midroll/actions/workflows/ci.yml)
-
-- **CI Pipeline Action Link:** https://github.com/Subho4531/midroll/actions/workflows/ci.yml
-- **GitHub Repository Link:** https://github.com/Subho4531/midroll
-
-> A privacy-first corporate payroll and compliance protocol on the Midnight blockchain delivering Shielded Corporate Payouts and Anonymous Employee Governance.
+> privacy-first corporate protocol on the Midnight blockchain delivering Shielded Corporate Expense Reimbursements and Anonymous Employee Governance & Whistleblower Protections.
 
 ---
 
@@ -304,9 +299,12 @@ MidRoll is built using a modern, high-performance stack optimized for security a
 ---
 
 ## 🤖 CI/CD Pipeline
+[![CI](https://github.com/Subho4531/midroll/actions/workflows/ci.yml/badge.svg)](https://github.com/Subho4531/midroll/actions/workflows/ci.yml)
+
+- **CI Pipeline Actions URL:** https://github.com/Subho4531/midroll/actions/workflows/ci.yml
+- **Direct Workflow File URL:** https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml
 
 The CI/CD pipeline is configured via GitHub Actions in [.github/workflows/ci.yml](file:///.github/workflows/ci.yml).
-- **Direct Workflow File URL:** https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml
 - **Pipeline Structure:**
   1. **contracts (Build and Test Contracts):** Checks out code, configures Node.js v22, downloads the official Midnight compact compiler CLI, runs `compact update` to set the default compiler, runs the contract ZK circuit verification tests, compiles the Compact smart contracts, and uploads the compilation files as a workflow artifact (`contract-artifacts`).
   2. **frontend (Build and Test APP):** Runs concurrently with database service integration. Pulls down `postgres:15` container services, downloads `contract-artifacts`, generates the Prisma client, deploys migrations, runs both the Frontend and Backend tests, and builds the Next.js production bundle.
