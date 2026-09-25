@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
 
 export interface CircuitCallResult {
   success: boolean;
@@ -11,22 +11,26 @@ export interface CircuitCallResult {
   status?: 'PENDING' | 'CONFIRMED';
 }
 
-// Helper: find the Lace or 1AM wallet in window.midnight
-const findLaceWallet = (): any | null => {
+// Helper: find the 1AM or Midnight wallet in window.midnight
+const findWallet = (): any | null => {
   if (typeof window === 'undefined') return null;
   const win = window as any;
   if (!win.midnight) return null;
+  if (win.midnight['1am']) return win.midnight['1am'];
+  if (win.midnight.oneam) return win.midnight.oneam;
+  if (win.midnight.oneAm) return win.midnight.oneAm;
   if (win.midnight.mnLace) return win.midnight.mnLace;
   if (win.midnight.lace) return win.midnight.lace;
-  if (win.midnight['1am']) return win.midnight['1am'];
   
   const wallets = Object.values(win.midnight) as any[];
   return wallets.find(
     (w) =>
+      w?.name?.toLowerCase().includes('1am') ||
+      w?.rdns?.toLowerCase().includes('1am') ||
+      w?.name?.toLowerCase().includes('oneam') ||
       w?.name?.toLowerCase().includes('lace') ||
       w?.rdns?.toLowerCase().includes('lace') ||
-      w?.name?.toLowerCase().includes('1am') ||
-      w?.rdns?.toLowerCase().includes('1am')
+      (typeof w?.connect === 'function' && typeof w?.enable === 'function')
   ) || wallets[0] || null;
 };
 
@@ -80,7 +84,7 @@ const pollForTxHash = async (
     }
   }
   throw new Error(
-    'Transaction was submitted but the on-chain hash could not be retrieved from the Midnight indexer after multiple retries. Please check your Lace wallet history for the transaction.'
+    'Transaction was submitted but the on-chain hash could not be retrieved from the Midnight indexer after multiple retries. Please check your 1AM wallet history for the transaction.'
   );
 };
 
@@ -136,16 +140,16 @@ const ensureLiveApi = async (
     addLog(`Connection check failed — reconnecting...`);
   }
 
-  const laceWallet = findLaceWallet();
-  if (!laceWallet) throw new Error('Lace extension not found. Please reload and reconnect.');
-  const freshApi = await laceWallet.connect(network);
-  if (!freshApi) throw new Error('Reconnect failed — Lace returned no API.');
+  const wallet = findWallet();
+  if (!wallet) throw new Error('1AM wallet extension not found. Please reload and reconnect.');
+  const freshApi = await wallet.connect(network);
+  if (!freshApi) throw new Error('Reconnect failed — 1AM wallet returned no API.');
   addLog('✓ Reconnected.');
   return freshApi;
 };
 
 export const useMidnight = () => {
-  const wallet = useLaceWallet();
+  const wallet = useOneAMWallet();
   const [isLoading, setIsLoading] = useState(false);
   const [lastResult, setLastResult] = useState<CircuitCallResult | null>(null);
   const [txPhase, setTxPhase] = useState<'idle' | 'signing' | 'broadcasting' | 'confirming' | 'done'>('idle');
@@ -197,7 +201,7 @@ export const useMidnight = () => {
 
     try {
       if (!wallet.isConnected || !wallet.connectedApi) {
-        throw new Error('Wallet not connected. Please connect your Lace wallet first.');
+        throw new Error('Wallet not connected. Please connect your 1AM wallet first.');
       }
 
       const connectedApi = await ensureLiveApi(wallet.connectedApi, wallet.network, addLog);
@@ -223,7 +227,7 @@ export const useMidnight = () => {
         const isShielded = recipientInfo.routing === 'shielded';
         const label = isShielded ? 'USDC (Shielded)' : 'tNIGHT';
         addLog(`→ Sending ${payAmt} ${label} to ${shortAddr(recipientInfo.address)}`);
-        addLog('Awaiting Lace wallet signature...');
+        addLog('Awaiting 1AM wallet signature...');
 
         // Get the latest transaction hash *before* we submit the new one
         const lastKnownHash = await getLatestTxHash(connectedApi);
@@ -272,7 +276,7 @@ export const useMidnight = () => {
         const isShielded = recipientInfo.routing === 'shielded';
         const label = isShielded ? 'USDC (Shielded)' : 'tNIGHT';
         addLog(`→ Batch: ${recipientInfo.payouts.length} recipients, ${total} ${label} total`);
-        addLog('Awaiting Lace wallet signature...');
+        addLog('Awaiting 1AM wallet signature...');
 
         // Get the latest transaction hash *before* we submit the new one
         const lastKnownHash = await getLatestTxHash(connectedApi);

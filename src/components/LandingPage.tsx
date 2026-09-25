@@ -22,9 +22,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import { BoomerangVideoBg } from './BoomerangVideoBg';
-import { LaceWalletModal } from './LaceWalletModal';
+import { OneAMWalletModal } from './LaceWalletModal';
+import { OneAMLogo } from './OneAMLogo';
 
 const VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260715_090628_7052d8a6-a094-4341-a4a2-ad58493a67a9.mp4';
 
@@ -36,7 +37,7 @@ const LogoMark = () => (
 
 export function LandingPage() {
   const router = useRouter();
-  const { isConnected } = useLaceWallet();
+  const { isConnected } = useOneAMWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'zk-payroll' | 'shielded-treasury' | 'compliance'>('zk-payroll');
   const [activeStep, setActiveStep] = useState<number>(1);
@@ -71,7 +72,7 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#f8faf7] overflow-x-hidden font-sans antialiased text-[#17211b]">
-      <LaceWalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} />
+      <OneAMWalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} />
 
       {/* Simplified Fixed Navbar (Logo + Connect Wallet ONLY) */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 md:px-14 py-4 sm:py-5 flex items-center justify-between bg-white/70 backdrop-blur-md border-b border-[#dfe5df]/50">
@@ -98,8 +99,8 @@ export function LandingPage() {
             onClick={() => setIsWalletModalOpen(true)}
             className="flex items-center gap-2 px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
           >
-            <Wallet className="w-4 h-4 text-[#17211b]" />
-            <span>Connect Wallet</span>
+            <OneAMLogo size={15} />
+            <span>Connect 1AM Wallet</span>
           </button>
         )}
       </nav>
@@ -230,7 +231,7 @@ export function LandingPage() {
             {
               step: 1,
               title: 'Shielded Key Commitment',
-              desc: 'Employees generate a private key commitment locally in Lace Wallet. No real identities or plaintext addresses are exposed.',
+              desc: 'Employees generate a private key commitment locally in 1AM Wallet. No real identities or plaintext addresses are exposed.',
               icon: Lock,
             },
             {
@@ -376,7 +377,7 @@ export function LandingPage() {
                     </div>
 
                     <div className="p-4 bg-[#25332b] rounded-xl border border-[#31834b]/40 text-xs text-slate-300 leading-relaxed">
-                      💡 Employees receive funds instantly into their Lace Wallet key commitments without public block explorers indexing salary amounts.
+                      💡 Employees receive funds instantly into their 1AM Wallet key commitments without public block explorers indexing salary amounts.
                     </div>
                   </div>
                 )}
@@ -474,7 +475,7 @@ export function LandingPage() {
           {[
             {
               title: 'Shielded Expenses',
-              desc: 'Employees submit expense receipts with zero-knowledge proof status. Reimbursements dispatch privately into Lace Wallet.',
+              desc: 'Employees submit expense receipts with zero-knowledge proof status. Reimbursements dispatch privately into 1AM Wallet.',
               icon: Receipt,
             },
             {
@@ -488,8 +489,8 @@ export function LandingPage() {
               icon: UserCheck,
             },
             {
-              title: 'Lace Extension Native',
-              desc: 'Seamless integration with Midnight Lace Wallet. Key commitments, tNIGHT, and tDUST handled out of the box.',
+              title: '1AM Wallet Native',
+              desc: 'Seamless integration with Midnight 1AM Wallet. Key commitments, tNIGHT, and tDUST handled out of the box.',
               icon: Wallet,
             },
             {
@@ -554,15 +555,15 @@ export function LandingPage() {
           </h2>
 
           <p className="text-sm sm:text-base text-[#718077] max-w-lg mx-auto leading-relaxed">
-            Connect your Midnight Lace Wallet to launch the Midroll administrative portal and execute zero-knowledge payouts.
+            Connect your Midnight 1AM Wallet to launch the Midroll administrative portal and execute zero-knowledge payouts.
           </p>
 
           <button
             onClick={() => setIsWalletModalOpen(true)}
             className="inline-flex items-center gap-2.5 px-8 py-4 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_8px_25px_rgba(215,255,101,0.65)] hover:-translate-y-[2px] transition-all duration-200"
           >
-            <Wallet className="w-5 h-5 text-[#17211b]" />
-            <span>Connect Lace Wallet</span>
+            <OneAMLogo size={20} />
+            <span>Connect 1AM Wallet</span>
           </button>
         </div>
       </section>

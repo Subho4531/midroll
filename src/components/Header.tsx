@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, CreditCard, Vote, Building2, FileCode, Wallet, CheckCircle2, Home, ChevronLeft } from 'lucide-react';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
-import { LaceWalletModal } from '@/components/LaceWalletModal';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
+import { OneAMWalletModal } from '@/components/LaceWalletModal';
 
 export type ActiveTab = 'dashboard' | 'transactions' | 'contacts' | 'settings';
 
@@ -18,7 +18,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) => {
   const pathname = usePathname();
-  const { isConnected, walletAddress, tDustBalance, network } = useLaceWallet();
+  const { isConnected, walletAddress, tDustBalance, network } = useOneAMWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) =
             </div>
             <div>
               <b className="truncate max-w-[120px] text-white">
-                {isConnected ? formatShortAddr(walletAddress) : 'Connect Lace'}
+                {isConnected ? formatShortAddr(walletAddress) : 'Connect 1AM'}
               </b>
               <small className="text-slate-400">
                 {isConnected ? `${tDustBalance.toLocaleString()} tDUST` : 'Not Connected'}
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) =
         </div>
       </aside>
 
-      <LaceWalletModal
+      <OneAMWalletModal
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
       />

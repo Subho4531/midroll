@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import {
   Employee,
   ExpenseReceipt,
@@ -58,7 +58,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isConnected, walletAddress } = useLaceWallet();
+  const { isConnected, walletAddress } = useOneAMWallet();
 
   const [company, setCompany] = useState<any>(null);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);

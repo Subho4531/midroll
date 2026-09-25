@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, LogOut, CheckCircle2, ShieldAlert, Copy, Check, ExternalLink, Shield } from 'lucide-react';
 
+import { OneAMLogo } from '@/components/OneAMLogo';
+
 export const WalletConnect: React.FC = () => {
-  const wallet = useLaceWallet();
+  const wallet = useOneAMWallet();
   const [copied, setCopied] = useState(false);
   const [copiedShielded, setCopiedShielded] = useState(false);
 
@@ -37,11 +39,11 @@ export const WalletConnect: React.FC = () => {
     <Card className="card border border-line bg-card shadow-sm hover:border-[#c2ccc4]">
       <CardHeader>
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-[#eef4ee] border border-line text-ink rounded-xl">
-            <Wallet className="w-5 h-5" />
-          </div>
+          <OneAMLogo size="md" />
           <div>
-            <CardTitle className="text-base text-ink font-bold">Lace Wallet Connectivity</CardTitle>
+            <CardTitle className="text-base text-ink font-bold flex items-center gap-1.5">
+              1AM Wallet Connectivity
+            </CardTitle>
             <CardDescription className="text-xs text-muted">
               Midnight DApp Connector Authentication
             </CardDescription>
@@ -119,7 +121,7 @@ export const WalletConnect: React.FC = () => {
             <div className="p-4 bg-[#f8faf7] border border-line rounded-xl text-center text-xs text-muted">
               <ShieldAlert className="w-8 h-8 text-ink/70 mx-auto mb-2 animate-pulse" />
               <p className="font-semibold text-ink">Wallet Disconnected</p>
-              <p className="text-[11px] text-muted mt-0.5">Please connect your Lace for Midnight wallet to proceed.</p>
+              <p className="text-[11px] text-muted mt-0.5">Please connect your 1AM for Midnight wallet to proceed.</p>
             </div>
 
             {wallet.error && (
@@ -129,12 +131,12 @@ export const WalletConnect: React.FC = () => {
             )}
 
             <button
-              onClick={wallet.connect}
+              onClick={() => wallet.connect()}
               disabled={wallet.isConnecting}
               className="new w-full gap-2 h-11 justify-center disabled:opacity-50"
             >
-              <Wallet className="w-4 h-4" />
-              <span>{wallet.isConnecting ? 'Connecting to Lace...' : 'Connect Lace Wallet'}</span>
+              <OneAMLogo size="sm" />
+              <span>{wallet.isConnecting ? 'Connecting to 1AM Wallet...' : 'Connect 1AM Wallet'}</span>
             </button>
           </div>
         )}

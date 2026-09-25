@@ -3,13 +3,14 @@
 import React from 'react';
 import { Header } from '@/components/Header';
 import { CompanyOnboardingModal } from '@/components/CompanyOnboardingModal';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import { useAppContext } from '@/lib/app-context';
 import { LandingPage } from '@/components/LandingPage';
 import { Menu, Wallet } from 'lucide-react';
+import { OneAMLogo } from '@/components/OneAMLogo';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { isConnected, walletAddress } = useLaceWallet();
+  const { isConnected, walletAddress } = useOneAMWallet();
   const {
     isSidebarCollapsed,
     setIsSidebarCollapsed,
@@ -47,8 +48,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="top-actions">
             {/* Primary Connect Wallet Button in Header */}
             <button className="new flex items-center gap-2" onClick={() => window.dispatchEvent(new CustomEvent('open-wallet-modal'))}>
-              <Wallet className="w-4 h-4" />
-              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}` : 'Connect Wallet'}
+              <OneAMLogo size={14} />
+              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}` : 'Connect 1AM Wallet'}
             </button>
             <button className="icon-btn flex items-center justify-center font-bold text-slate-500 hover:text-slate-900 border border-slate-200 bg-white rounded-lg shadow-sm hover:shadow transition" aria-label="Search">⌕</button>
             <button className="icon-btn flex items-center justify-center font-bold text-slate-500 hover:text-slate-900 border border-slate-200 bg-white rounded-lg shadow-sm hover:shadow transition" aria-label="Notifications">◌</button>

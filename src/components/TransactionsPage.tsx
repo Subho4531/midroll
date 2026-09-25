@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import { CheckCircle2, ExternalLink, RefreshCw, ArrowUpRight, Users, User, Repeat, Copy, Check, Receipt } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -52,7 +52,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function TransactionsPage() {
-  const { isConnected, walletAddress, connectedApi } = useLaceWallet();
+  const { isConnected, walletAddress, connectedApi } = useOneAMWallet();
   const [records, setRecords] = useState<TxRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -15,7 +15,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
+import { OneAMLogo } from '@/components/OneAMLogo';
 import confetti from 'canvas-confetti';
 
 interface ShieldedExpensesProps {
@@ -29,7 +30,7 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
   onAddReceipt,
   onReimburse,
 }) => {
-  const { isConnected, connect, walletAddress } = useLaceWallet();
+  const { isConnected, connect, walletAddress } = useOneAMWallet();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [merchantName, setMerchantName] = useState('');
   const [category, setCategory] = useState<'Travel & Lodging' | 'Software & Cloud' | 'Meals & Entertainment' | 'Hardware'>('Software & Cloud');
@@ -47,7 +48,7 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
       category,
       amountUSD: Number(amountUSD),
       date: new Date().toISOString().split('T')[0],
-      employeeShieldedId: walletAddress ? `emp_lace_${walletAddress.substring(0, 8)}` : 'emp_zk_9821',
+      employeeShieldedId: walletAddress ? `emp_1am_${walletAddress.substring(0, 8)}` : 'emp_zk_9821',
       zkProofStatus: 'VERIFIED_SHIELDED',
       proofCommitment: generateZKHash('0xproof_receipt_' + merchantName),
       receiptPolicyLimit: 2000,
@@ -103,17 +104,15 @@ export const ShieldedExpenses: React.FC<ShieldedExpensesProps> = ({
       {!isConnected && (
         <div className="card bg-[#ffdbda] border-[#ffdbda] p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-3 text-xs text-[#5c2d2b]">
-            <div className="p-2 rounded-xl bg-white border border-[#f3aaa4] text-[#d64a4a] shrink-0">
-              <Wallet className="w-5 h-5" />
-            </div>
+            <OneAMLogo size="md" />
             <div>
-              <div className="font-bold text-[#17211b] text-sm">Lace Wallet Not Connected</div>
-              <div>Connect your Lace for Midnight wallet to sign ZK proofs directly from your browser.</div>
+              <div className="font-bold text-[#17211b] text-sm">1AM Wallet Not Connected</div>
+              <div>Connect your 1AM for Midnight wallet to sign ZK proofs directly from your browser.</div>
             </div>
           </div>
-          <button onClick={connect} className="new shrink-0">
-            <Wallet className="w-4 h-4" />
-            <span>Connect Lace</span>
+          <button onClick={() => connect()} className="new shrink-0 flex items-center gap-2">
+            <OneAMLogo size="sm" />
+            <span>Connect 1AM Wallet</span>
           </button>
         </div>
       )}

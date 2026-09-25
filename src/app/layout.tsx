@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, DM_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { LaceWalletProvider } from "@/lib/lace-wallet-context";
+import { OneAMWalletProvider } from "@/lib/lace-wallet-context";
 import { AppProvider } from "@/lib/app-context";
 
 const manrope = Manrope({
@@ -45,9 +45,9 @@ export default function RootLayout({
         <link href="https://db.onlinewebfonts.com/c/9d4d074c9335825a23cce178ee03b498?family=P22+Mackinac+W01+Book" rel="stylesheet" type="text/css" />
       </head>
       <body className="min-h-full flex flex-col bg-[#f8faf7] text-[#17211b] font-sans">
-        <LaceWalletProvider>
+        <OneAMWalletProvider>
           <AppProvider>{children}</AppProvider>
-        </LaceWalletProvider>
+        </OneAMWalletProvider>
       </body>
     </html>
   );

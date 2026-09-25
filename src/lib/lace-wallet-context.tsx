@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type MidnightNetwork = 'preview' | 'devnet' | 'preprod';
 
-export interface LaceWalletState {
+export interface OneAMWalletState {
   isConnected: boolean;
   isConnecting: boolean;
   walletAddress: string | null;
@@ -13,9 +13,10 @@ export interface LaceWalletState {
   tDustBalance: number;
   shieldedBalance: number;
   network: MidnightNetwork;
-  isLaceInstalled: boolean;
+  is1AMInstalled: boolean;
+  isLaceInstalled: boolean; // Alias for backwards-compatibility
   error: string | null;
-  connect: () => Promise<void>;
+  connect: (networkOverride?: MidnightNetwork) => Promise<void>;
   disconnect: () => void;
   setNetwork: (net: MidnightNetwork) => void;
   transferDust: (amount: number) => Promise<void>;
@@ -23,32 +24,48 @@ export interface LaceWalletState {
   connectedApi: any | null;
 }
 
-const LaceWalletContext = createContext<LaceWalletState | undefined>(undefined);
+// Backward-compatible type alias
+export type LaceWalletState = OneAMWalletState;
 
-const LOCAL_STORAGE_KEY = 'midroll_lace_wallet_state_v2';
+const OneAMWalletContext = createContext<OneAMWalletState | undefined>(undefined);
 
-// Helper: find the Lace or 1AM wallet in window.midnight
-const findLaceWallet = (): any | null => {
+const LOCAL_STORAGE_KEY = 'midroll_1am_wallet_state_v2';
+const FALLBACK_STORAGE_KEY = 'midroll_lace_wallet_state_v2';
+
+// Helper: prioritize finding the 1AM wallet in window.midnight
+const find1AMWallet = (): any | null => {
   if (typeof window === 'undefined') return null;
   const win = window as any;
   if (!win.midnight) return null;
-  // Prefer the known Midnight Lace/1AM keys
+
+  // 1. Prefer the 1AM wallet explicitly
+  if (win.midnight['1am']) return win.midnight['1am'];
+  if (win.midnight.oneam) return win.midnight.oneam;
+  if (win.midnight.oneAm) return win.midnight.oneAm;
+
+  // 2. Fallback to mnLace or lace or any Midnight DApp connector
   if (win.midnight.mnLace) return win.midnight.mnLace;
   if (win.midnight.lace) return win.midnight.lace;
-  if (win.midnight['1am']) return win.midnight['1am'];
-  
-  // CAIP-372 UUID keys — find by name/rdns/brand
+
+  // 3. CAIP-372 UUID keys — check 1AM first, then any injected wallet
   const wallets = Object.values(win.midnight) as any[];
+  const oneAmMatch = wallets.find(
+    (w) =>
+      w?.name?.toLowerCase().includes('1am') ||
+      w?.rdns?.toLowerCase().includes('1am') ||
+      w?.name?.toLowerCase().includes('oneam')
+  );
+  if (oneAmMatch) return oneAmMatch;
+
   return wallets.find(
     (w) =>
       w?.name?.toLowerCase().includes('lace') ||
       w?.rdns?.toLowerCase().includes('lace') ||
-      w?.name?.toLowerCase().includes('1am') ||
-      w?.rdns?.toLowerCase().includes('1am')
+      (typeof w?.connect === 'function' && typeof w?.enable === 'function')
   ) || wallets[0] || null;
 };
 
-export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const OneAMWalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -57,15 +74,15 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [tDustBalance, setTDustBalance] = useState<number>(0);
   const [shieldedBalance, setShieldedBalance] = useState<number>(0);
   const [network, setNetworkState] = useState<MidnightNetwork>('preview');
-  const [isLaceInstalled, setIsLaceInstalled] = useState(false);
+  const [is1AMInstalled, setIs1AMInstalled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connectedApi, setConnectedApi] = useState<any | null>(null);
 
-  // Poll for Lace extension presence every second
+  // Poll for 1AM Wallet extension presence
   useEffect(() => {
     const check = () => {
-      const lace = findLaceWallet();
-      setIsLaceInstalled(!!lace);
+      const wallet = find1AMWallet();
+      setIs1AMInstalled(!!wallet);
     };
     check();
     const id = setInterval(check, 1000);
@@ -75,13 +92,12 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Restore network preference and wasConnected state from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY) || localStorage.getItem(FALLBACK_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         const savedNetwork = parsed.network || 'preview';
         setNetworkState(savedNetwork);
         if (parsed.wasConnected) {
-          // Trigger auto-connect once on mount after brief extension injection pause
           setTimeout(() => {
             connect(savedNetwork).catch((err) => {
               console.warn('Silent auto-connect failed:', err);
@@ -112,34 +128,33 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const activeNetwork = (typeof networkOverride === 'string') ? networkOverride : network;
 
     try {
-      const laceWallet = findLaceWallet();
+      const oneAmWallet = find1AMWallet();
 
-      if (!laceWallet) {
+      if (!oneAmWallet) {
         throw new Error(
-          'Lace wallet extension not found. Please install the Midnight Lace extension and refresh.'
+          '1AM wallet extension not found. Please install the Midnight 1AM extension and refresh.'
         );
       }
 
-      // Connect — this triggers the Lace unlock/authorize popup if wallet is locked
+      // Connect — triggers unlock/authorize popup in 1AM wallet
       let api: any;
-      if (typeof laceWallet.connect === 'function') {
-        api = await laceWallet.connect(activeNetwork);
-      } else if (typeof laceWallet.enable === 'function') {
-        api = await laceWallet.enable();
+      if (typeof oneAmWallet.connect === 'function') {
+        api = await oneAmWallet.connect(activeNetwork);
+      } else if (typeof oneAmWallet.enable === 'function') {
+        api = await oneAmWallet.enable();
       } else {
-        throw new Error('Lace wallet does not expose a connect() or enable() method.');
+        throw new Error('1AM wallet does not expose a connect() or enable() method.');
       }
 
       if (!api) {
-        throw new Error('Lace wallet returned no API. The connection was rejected or timed out.');
+        throw new Error('1AM wallet returned no API. The connection was rejected or timed out.');
       }
 
-      // Verify wallet is actually unlocked by fetching the unshielded address.
-      // This will throw "Wallet is locked" if the user hasn't unlocked yet.
+      // Verify wallet is actually unlocked by fetching the unshielded address
       const addrRes = await api.getUnshieldedAddress();
       const unshieldedAddress = addrRes?.unshieldedAddress ?? addrRes ?? null;
       if (!unshieldedAddress) {
-        throw new Error('Could not read wallet address. Please ensure your wallet is unlocked.');
+        throw new Error('Could not read wallet address. Please ensure your 1AM wallet is unlocked.');
       }
 
       // Fetch shielded address
@@ -190,15 +205,14 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setIsConnected(true);
     } catch (err: any) {
       const msg: string = err?.message || String(err);
-      // Surface locked wallet error clearly in the UI
       if (msg.toLowerCase().includes('locked')) {
-        setError('Wallet is locked. Please click the Lace extension icon and unlock it first.');
+        setError('Wallet is locked. Please click the 1AM wallet extension icon and unlock it first.');
       } else if (msg.toLowerCase().includes('rejected') || msg.toLowerCase().includes('user denied')) {
-        setError('Connection rejected. Please approve the connection in the Lace wallet popup.');
+        setError('Connection rejected. Please approve the connection in the 1AM wallet popup.');
       } else {
         setError(msg);
       }
-      console.error('Lace connect error:', err);
+      console.error('1AM wallet connect error:', err);
     } finally {
       setIsConnecting(false);
     }
@@ -217,7 +231,6 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const setNetwork = (net: MidnightNetwork) => {
     setNetworkState(net);
-    // If connected, disconnect so user has to reconnect on the new network
     if (isConnected) {
       disconnect();
     }
@@ -232,7 +245,7 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   return (
-    <LaceWalletContext.Provider
+    <OneAMWalletContext.Provider
       value={{
         isConnected,
         isConnecting,
@@ -242,7 +255,8 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         tDustBalance,
         shieldedBalance,
         network,
-        isLaceInstalled,
+        is1AMInstalled,
+        isLaceInstalled: is1AMInstalled,
         error,
         connect,
         disconnect,
@@ -253,14 +267,18 @@ export const LaceWalletProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }}
     >
       {children}
-    </LaceWalletContext.Provider>
+    </OneAMWalletContext.Provider>
   );
 };
 
-export const useLaceWallet = () => {
-  const context = useContext(LaceWalletContext);
+export const useOneAMWallet = () => {
+  const context = useContext(OneAMWalletContext);
   if (!context) {
-    throw new Error('useLaceWallet must be used within a LaceWalletProvider');
+    throw new Error('useOneAMWallet must be used within a OneAMWalletProvider');
   }
   return context;
 };
+
+// Aliases for seamless backward compatibility across the codebase
+export const LaceWalletProvider = OneAMWalletProvider;
+export const useLaceWallet = useOneAMWallet;

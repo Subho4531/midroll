@@ -53,7 +53,7 @@ Experience MidRoll in action:
 ## ✨ Key Features
 
 - **🔐 Privacy via ZK Proofs**: All compliance verification logic runs locally. Payouts are made directly to shielded/stealth addresses, hiding worker wallet histories.
-- **💎 Dynamic Shielded Token Selection**: Integrates `getShieldedBalances` to query available shielded tokens in the connected Lace wallet dynamically, defaulting to custom USDC (`9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc`).
+- **💎 Dynamic Shielded Token Selection**: Integrates `getShieldedBalances` to query available shielded tokens in the connected 1AM wallet dynamically, defaulting to custom USDC (`9e3544c9fc085f2be9625c3be78ce82a3cb3c5a946bbbf7553a21781ae4628dc`).
 - **🔒 Company Multi-Tenant Isolation**: Roaster contacts, corporate teams, and on-chain logs are partitioned by the company connected `walletAddress` to enforce complete data privacy from other corporate tenants.
 - **🛡️ Pending Transaction Recovery**: Handles indexer lag. Approved transactions are saved with a `PENDING` state and automatically synced/resolved chronologically against the connected wallet history on subsequent visits.
 - **⚡ Auto-Connect & Redirect**: Connection persistence remembers your wallet connectivity; automatically connects on mount and redirects you directly to the `/dashboard`.
@@ -67,7 +67,7 @@ graph TD
     subgraph Client ["Frontend (Next.js)"]
         UI["MidRoll Terminal"]
         PM["Payment Dispatcher (ZK Routing)"]
-        AM["Lace Wallet Connector"]
+        AM["1AM Wallet Connector"]
     end
 
     subgraph Backend ["Server (Next.js API)"]
@@ -76,7 +76,7 @@ graph TD
     end
 
     subgraph Blockchain ["Midnight Network"]
-        Wallet["Lace Wallet (DApp API)"]
+        Wallet["1AM Wallet (DApp API)"]
         SC["Compact Smart Contract"]
         Explorer["1AM Block Explorer"]
     end
@@ -146,11 +146,11 @@ An on-chain observer can only see that a valid ZK transaction was executed, that
 
 MidRoll provides a non-custodial, privacy-preserving terminal for corporate organizations, DAOs, and remote teams:
 
-### 1. Connecting Your Lace Wallet & Network Selection
+### 1. Connecting Your 1AM Wallet & Network Selection
 1. Navigate to the live dApp at [midroll.netlify.app](https://midroll.netlify.app/) or run locally at `http://localhost:3000`.
 2. Click **Connect Wallet** in the top navigation bar or central modal.
 3. Select your desired network: **Preprod** or **Preview** using the built-in network selector.
-4. Authorize the dApp connection inside your Midnight Lace Wallet extension.
+4. Authorize the dApp connection inside your Midnight 1AM Wallet extension.
 5. On connection, the system will auto-save your wallet state and automatically route you to the **Corporate Dashboard**.
 
 ### 2. Multi-Tenant Company Isolation
@@ -170,7 +170,7 @@ MidRoll provides a non-custodial, privacy-preserving terminal for corporate orga
 4. Enter the approved reimbursement amount and optional expense category note.
 5. Click **Dispatch Payment (Run ZK Circuit)**.
 6. The terminal initiates client-side proof generation via the Compact circuit (`dispatch_payment` / `claim_shielded_expense`).
-7. Approve the transaction in Lace Wallet. Once confirmed, the transaction emits an on-chain commitment without revealing the employee's identity or itemized purchases.
+7. Approve the transaction in 1AM Wallet. Once confirmed, the transaction emits an on-chain commitment without revealing the employee's identity or itemized purchases.
 
 ### 5. Anonymous Governance & Whistleblower Alert Protocol
 1. Employees verify active corporate membership via a Zero-Knowledge witness proof.
@@ -225,7 +225,7 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 #### Requirements to Pass
 | Requirement | Status | Evidence / Proof |
 | --- | --- | --- |
-| Lace wallet connect / disconnect implemented | **Fulfilled** | Implemented using DApp API inside [lace-wallet-context.tsx](file:///C:/Users/subho/OneDrive/Documents/midnight-t1/src/lib/lace-wallet-context.tsx) |
+| 1AM wallet connect / disconnect implemented | **Fulfilled** | Implemented using DApp API inside [lace-wallet-context.tsx](file:///C:/Users/subho/OneDrive/Documents/midnight-t1/src/lib/lace-wallet-context.tsx) |
 | Circuit called successfully from the frontend | **Fulfilled** | Called via `callCircuit` (dispatches payments/batch payments). Proof: [transactions.png](./screenshots/transactions.png) |
 | An observable privacy behavior | **Fulfilled** | ZK proof generated locally proving payroll inclusion/receipt limits without exposing raw values on-chain. |
 | Deployed to Preprod/Preview with verifiable address | **Fulfilled** | Deployed on Preview testnet. Address: `d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f` |
@@ -294,7 +294,7 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 ## 🚀 Run Locally & Getting Started
 
 ### Prerequisites
-- Lace Wallet browser extension installed (configured for Midnight Network)
+- 1AM Wallet browser extension installed (configured for Midnight Network)
 - Node.js v22
 - Docker (for running local dev proof server)
 
@@ -369,7 +369,7 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 MidRoll is built using a modern, high-performance stack optimized for security and scale.
 
 - **Frontend**: Next.js, Tailwind CSS, Framer Motion, Lenis Scroll
-- **Blockchain**: Midnight Network, Compact ZK Smart Contracts, Midnight.js SDK, Lace Wallet
+- **Blockchain**: Midnight Network, Compact ZK Smart Contracts, Midnight.js SDK, 1AM Wallet
 - **Backend**: Node.js, Next.js API Routes, Prisma
 - **Database**: PostgreSQL (Aiven Cloud Instance)
 - **Testing**: Vitest
@@ -387,7 +387,7 @@ MidRoll is built using a modern, high-performance stack optimized for security a
 │   ├── app/           # App Router (Pages, UI shells, & REST API routes)
 │   ├── components/    # Reusable React UI layouts & dashboard tables
 │   ├── hooks/         # Custom hooks (Midnight DApp connector integration)
-│   └── lib/           # Context providers (Lace connection) & DB Client
+│   └── lib/           # Context providers (1AM wallet connection) & DB Client
 └── tests/             # Contract, Frontend, and Backend Vitest suites
 ```
 

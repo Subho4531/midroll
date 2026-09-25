@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Upload, ShieldAlert, CheckCircle2, Search, Trash2, Plus, Info, ListFilter, ArrowRight } from 'lucide-react';
-import { useLaceWallet } from '@/lib/lace-wallet-context';
+import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -24,7 +24,7 @@ interface Team {
 }
 
 export const ContactsPage: React.FC = () => {
-  const { walletAddress } = useLaceWallet();
+  const { walletAddress } = useOneAMWallet();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);

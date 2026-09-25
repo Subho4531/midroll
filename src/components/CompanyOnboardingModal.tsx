@@ -35,7 +35,7 @@ export const CompanyOnboardingModal: React.FC<CompanyOnboardingModalProps> = ({
       return;
     }
     if (!walletAddress) {
-      setError('Wallet Address not detected. Please reconnect Lace Wallet.');
+      setError('Wallet Address not detected. Please reconnect 1AM Wallet.');
       return;
     }
 
