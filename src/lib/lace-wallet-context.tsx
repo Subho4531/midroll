@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type MidnightNetwork = 'preview' | 'devnet' | 'preprod';
 
+export type DetectedWalletType = '1am' | 'lace' | null;
+
 export interface OneAMWalletState {
   isConnected: boolean;
   isConnecting: boolean;
@@ -14,7 +16,8 @@ export interface OneAMWalletState {
   shieldedBalance: number;
   network: MidnightNetwork;
   is1AMInstalled: boolean;
-  isLaceInstalled: boolean; // Alias for backwards-compatibility
+  isLaceInstalled: boolean;
+  detectedWallet: DetectedWalletType;
   error: string | null;
   connect: (networkOverride?: MidnightNetwork) => Promise<void>;
   disconnect: () => void;
@@ -31,6 +34,35 @@ const OneAMWalletContext = createContext<OneAMWalletState | undefined>(undefined
 
 const LOCAL_STORAGE_KEY = 'midroll_1am_wallet_state_v2';
 const FALLBACK_STORAGE_KEY = 'midroll_lace_wallet_state_v2';
+
+// Helper: which brand is injected? Prefer 1AM, then Lace.
+export const getDetectedWalletType = (): DetectedWalletType => {
+  if (typeof window === 'undefined') return null;
+  const win = window as any;
+  if (!win.midnight) return null;
+
+  // Explicit keys first — 1AM wins
+  if (win.midnight['1am'] || win.midnight.oneam || win.midnight.oneAm) return '1am';
+
+  const wallets = Object.values(win.midnight) as any[];
+  const has1AM = wallets.some(
+    (w) =>
+      w?.name?.toLowerCase().includes('1am') ||
+      w?.rdns?.toLowerCase().includes('1am') ||
+      w?.name?.toLowerCase().includes('oneam')
+  );
+  if (has1AM) return '1am';
+
+  if (win.midnight.mnLace || win.midnight.lace) return 'lace';
+  const hasLace = wallets.some(
+    (w) =>
+      w?.name?.toLowerCase().includes('lace') ||
+      w?.rdns?.toLowerCase().includes('lace')
+  );
+  if (hasLace) return 'lace';
+
+  return null;
+};
 
 // Helper: prioritize finding the 1AM wallet in window.midnight
 const find1AMWallet = (): any | null => {
@@ -75,14 +107,31 @@ export const OneAMWalletProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [shieldedBalance, setShieldedBalance] = useState<number>(0);
   const [network, setNetworkState] = useState<MidnightNetwork>('preview');
   const [is1AMInstalled, setIs1AMInstalled] = useState(false);
+  const [isLaceInstalled, setIsLaceInstalled] = useState(false);
+  const [detectedWallet, setDetectedWallet] = useState<DetectedWalletType>(null);
   const [error, setError] = useState<string | null>(null);
   const [connectedApi, setConnectedApi] = useState<any | null>(null);
 
-  // Poll for 1AM Wallet extension presence
+  // Poll for wallet extension presence (1AM preferred, Lace fallback)
   useEffect(() => {
     const check = () => {
       const wallet = find1AMWallet();
+      const type = getDetectedWalletType();
       setIs1AMInstalled(!!wallet);
+      setDetectedWallet(type);
+      // Lace counts as installed when a lace injector exists OR any wallet exists but type is lace/null
+      // Keep it precise: true only when lace keys/names are found
+      if (typeof window !== 'undefined') {
+        const win = window as any;
+        const hasLaceKey = !!(win.midnight?.mnLace || win.midnight?.lace);
+        const wallets = win.midnight ? (Object.values(win.midnight) as any[]) : [];
+        const hasLaceName = wallets.some(
+          (w) =>
+            w?.name?.toLowerCase().includes('lace') ||
+            w?.rdns?.toLowerCase().includes('lace')
+        );
+        setIsLaceInstalled(hasLaceKey || hasLaceName || type === 'lace');
+      }
     };
     check();
     const id = setInterval(check, 1000);
@@ -206,7 +255,7 @@ export const OneAMWalletProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch (err: any) {
       const msg: string = err?.message || String(err);
       if (msg.toLowerCase().includes('locked')) {
-        setError('Wallet is locked. Please click the 1AM wallet extension icon and unlock it first.');
+        setError(`${detectedWallet === 'lace' ? 'Lace' : '1AM'} wallet is locked. Please click the ${detectedWallet === 'lace' ? 'Lace' : '1AM'} wallet extension icon and unlock it first.`);
       } else if (msg.toLowerCase().includes('rejected') || msg.toLowerCase().includes('user denied')) {
         setError('Connection rejected. Please approve the connection in the 1AM wallet popup.');
       } else {
@@ -256,7 +305,8 @@ export const OneAMWalletProvider: React.FC<{ children: React.ReactNode }> = ({ c
         shieldedBalance,
         network,
         is1AMInstalled,
-        isLaceInstalled: is1AMInstalled,
+        isLaceInstalled,
+        detectedWallet,
         error,
         connect,
         disconnect,

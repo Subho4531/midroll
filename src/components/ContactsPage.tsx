@@ -335,7 +335,6 @@ export const ContactsPage: React.FC = () => {
             {isLoading ? (
               <div className="text-center py-12 text-muted">
                 <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-xs uppercase font-mono tracking-widest font-semibold">Loading Postgres data...</p>
               </div>
             ) : filteredContacts.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-line rounded-2xl bg-white">

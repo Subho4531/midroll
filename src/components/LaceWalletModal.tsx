@@ -21,13 +21,30 @@ import {
   AlertCircle,
   Copy,
   Check,
+  ExternalLink,
 } from 'lucide-react';
 import { OneAMLogo } from '@/components/OneAMLogo';
+import { LaceLogo } from '@/components/LaceLogo';
 
 interface LaceWalletModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const WALLET_BRANDS = {
+  '1am': {
+    name: '1AM Wallet',
+    short: '1AM',
+    Logo: OneAMLogo,
+    installUrl: 'https://chromewebstore.google.com/detail/1am/bphnkdkcnfhompoegfpgnkidcjfbojjp',
+  },
+  lace: {
+    name: 'Lace Wallet',
+    short: 'Lace',
+    Logo: LaceLogo,
+    installUrl: 'https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk',
+  },
+} as const;
 
 export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClose }) => {
   const {
@@ -39,11 +56,18 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
     tDustBalance,
     network,
     is1AMInstalled,
+    isLaceInstalled,
+    detectedWallet,
     error,
     connect,
     disconnect,
     setNetwork,
   } = useOneAMWallet();
+
+  // Dynamic brand — whichever wallet is injected (1AM preferred), else 1AM as default
+  const brand = WALLET_BRANDS[detectedWallet ?? '1am'];
+  const BrandLogo = brand.Logo;
+  const anyInstalled = is1AMInstalled || isLaceInstalled;
 
   const [copied, setCopied] = useState(false);
   const [copiedShielded, setCopiedShielded] = useState(false);
@@ -74,10 +98,10 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
       <DialogContent className="sm:max-w-md bg-white border border-line text-ink">
         <DialogHeader>
           <div className="flex items-center space-x-3 mb-1">
-            <OneAMLogo size="lg" />
+            <BrandLogo size="lg" />
             <div>
               <DialogTitle className="text-xl font-extrabold text-ink flex items-center gap-2">
-                1AM Wallet
+                {brand.name}
                 <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-[#d7ff65]/20 text-[#17211b] border border-[#d7ff65]/40 uppercase">
                   Midnight
                 </span>
@@ -110,7 +134,7 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
                     </span>
                   </div>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#eef4ee] border border-line text-ink font-mono uppercase">
-                    1AM Extension Active
+                    {brand.short} Extension Active
                   </span>
                 </div>
 
@@ -166,7 +190,7 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
                     tDUST Fuel
                   </div>
                   <div className="text-sm font-bold text-ink mt-0.5 font-mono">
-                    {tDustBalance.toLocaleString()} tDUST
+                    {(tDustBalance/1000000).toLocaleString()} tDUST
                   </div>
                   <div className="text-[9px] text-muted font-mono mt-0.5">Gas / Fee Reserve</div>
                 </div>
@@ -199,35 +223,43 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
             <div className="space-y-4">
               {/* Not Connected Panel */}
               <div className="p-5 bg-[#f8faf7] border border-line rounded-2xl text-center space-y-3">
-                <OneAMLogo size="xl" className="mx-auto" />
+                <BrandLogo size="xl" className="mx-auto" />
                 <div>
-                  <h4 className="text-base font-extrabold text-ink">Connect 1AM for Midnight</h4>
+                  <h4 className="text-base font-extrabold text-ink">Connect {brand.short} for Midnight</h4>
                   <p className="text-xs text-muted mt-1 max-w-xs mx-auto leading-relaxed">
-                    Unlock your 1AM extension first, then click Connect. Your wallet will prompt for authorisation.
+                    Unlock your {brand.short} extension first, then click Connect. Your wallet will prompt for authorisation.
                   </p>
                 </div>
 
-                {!is1AMInstalled && (
+                {!anyInstalled && (
                   <div className="p-3 bg-[#eef4ee] border border-line rounded-xl text-left text-xs text-ink space-y-1.5">
                     <div className="font-semibold text-ink flex items-center gap-1 font-mono uppercase">
-                      <Sparkles className="w-3.5 h-3.5" /> 1AM wallet not detected
+                       {brand.short} wallet not detected
                     </div>
                     <p className="text-[11px] text-muted">
-                      Install the Midnight 1AM browser extension to use real on-chain ZK payments.
+                      Install the Midnight {brand.short} browser extension to use real on-chain ZK payments.
                     </p>
+                    <a
+                      href={brand.installUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-ink underline underline-offset-2 hover:opacity-70 transition"
+                    >
+                      Install {brand.short} <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
                 )}
 
-                {is1AMInstalled && (
+                {/* {anyInstalled && (
                   <div className="p-3 bg-[#eef4ee] border border-line rounded-xl text-left text-xs space-y-1">
                     <div className="font-semibold text-emerald-800 flex items-center gap-1 font-mono uppercase">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> 1AM wallet detected
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> {brand.short} wallet detected
                     </div>
                     <p className="text-[11px] text-muted">
                       Make sure your wallet is unlocked before clicking Connect below.
                     </p>
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Network Selector (pre-connect) */}
@@ -268,7 +300,7 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
             </Button>
           ) : (
             <Button
-              disabled={isConnecting || !is1AMInstalled}
+              disabled={isConnecting || !anyInstalled}
               onClick={() => connect()}
               className="w-full flex items-center justify-center gap-2 bg-[#17211b] hover:bg-[#25332b] text-white"
               type="submit"
@@ -276,17 +308,17 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({ isOpen, onClos
               {isConnecting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                  <span>Connecting to 1AM Wallet...</span>
+                  <span>Connecting to {brand.short} Wallet...</span>
                 </>
-              ) : !is1AMInstalled ? (
+              ) : !anyInstalled ? (
                 <>
-                  <OneAMLogo size="sm" />
-                  <span>1AM Wallet Not Detected</span>
+                  {/* <BrandLogo size="sm" /> */}
+                  <span>{brand.short} Wallet Not Detected</span>
                 </>
               ) : (
                 <>
-                  <OneAMLogo size="sm" />
-                  <span>Connect 1AM Wallet</span>
+                  {/* <BrandLogo size="sm" /> */}
+                  <span>Connect {brand.short} Wallet</span>
                 </>
               )}
             </Button>

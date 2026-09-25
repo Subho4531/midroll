@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { 
@@ -26,8 +26,139 @@ import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import { BoomerangVideoBg } from './BoomerangVideoBg';
 import { OneAMWalletModal } from './LaceWalletModal';
 import { OneAMLogo } from './OneAMLogo';
+import { LaceLogo } from './LaceLogo';
 
 const VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260715_090628_7052d8a6-a094-4341-a4a2-ad58493a67a9.mp4';
+
+/* Rolling flip label — text rolls up on hover/focus */
+const FlipLabel = ({ text, lineHeight = 'h-[16px] leading-[16px]' }: { text: string; lineHeight?: string }) => (
+  <span className={`relative block overflow-hidden ${lineHeight}`}>
+    <span className="flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-1/2 group-focus-visible:-translate-y-1/2 will-change-transform">
+      <span className={`block ${lineHeight}`}>{text}</span>
+      <span className={`block ${lineHeight}`} aria-hidden="true">{text}</span>
+    </span>
+  </span>
+);
+
+/* Two-face flip: default = generic wallet, hover = detected brand (1AM / Lace) */
+const DynamicFlipConnect = ({
+  defaultText,
+  lineHeight = 'h-[16px] leading-[16px]',
+  iconSize = 15,
+}: {
+  defaultText: string;
+  lineHeight?: string;
+  iconSize?: number;
+}) => {
+  const { detectedWallet } = useOneAMWallet();
+
+  const hoverText =
+    detectedWallet === '1am'
+      ? 'Connect 1AM'
+      : detectedWallet === 'lace'
+        ? 'Connect Lace'
+        : defaultText;
+
+  const HoverIcon =
+    detectedWallet === '1am' ? (
+      <OneAMLogo size={iconSize} />
+    ) : detectedWallet === 'lace' ? (
+      <LaceLogo size={iconSize} mono className="text-[#17211b]" />
+    ) : (
+      <Wallet
+        className="text-[#17211b] shrink-0"
+        style={{ width: iconSize, height: iconSize }}
+      />
+    );
+
+  return (
+    <span className={`relative block overflow-hidden ${lineHeight}`}>
+      <span className="flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-1/2 group-focus-visible:-translate-y-1/2 will-change-transform">
+        {/* Face A — default */}
+        <span className={`flex items-center gap-2 ${lineHeight}`}>
+          <Wallet
+            className="text-[#17211b] shrink-0 transition-transform duration-300 group-hover:-rotate-12"
+            style={{ width: iconSize, height: iconSize }}
+          />
+          <span className="block whitespace-nowrap">{defaultText}</span>
+        </span>
+        {/* Face B — hover, dynamic brand */}
+        <span className={`flex items-center gap-2 ${lineHeight}`} aria-hidden="true">
+          <span className="shrink-0 inline-flex transition-transform duration-300 group-hover:scale-105">
+            {HoverIcon}
+          </span>
+          <span className="block whitespace-nowrap">{hoverText}</span>
+        </span>
+      </span>
+    </span>
+  );
+};
+
+interface AnimatedStatCounterProps {
+  start: number;
+  end: number;
+  duration?: number;
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  inView: boolean;
+  replayTrigger?: number;
+}
+
+const AnimatedStatCounter: React.FC<AnimatedStatCounterProps> = ({
+  start,
+  end,
+  duration = 1800,
+  decimals = 0,
+  prefix = '',
+  suffix = '',
+  inView,
+  replayTrigger = 0,
+}) => {
+  const [val, setVal] = useState(start);
+
+  useEffect(() => {
+    if (!inView) {
+      setVal(start);
+      return;
+    }
+
+    let startTime: number | null = null;
+    let animId: number;
+
+    // Smooth cubic deceleration curve for professional easing
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const tick = (now: number) => {
+      if (startTime === null) startTime = now;
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeOutCubic(progress);
+
+      const current = start + (end - start) * eased;
+      setVal(current);
+
+      if (progress < 1) {
+        animId = requestAnimationFrame(tick);
+      } else {
+        setVal(end);
+      }
+    };
+
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, [inView, start, end, duration, replayTrigger]);
+
+  const formattedNumber = decimals > 0 ? val.toFixed(decimals) : Math.round(val).toString();
+
+  return (
+    <span>
+      {prefix}
+      {formattedNumber}
+      {suffix}
+    </span>
+  );
+};
 
 const LogoMark = () => (
   <div className="w-[28px] h-[28px] rounded-[9px] bg-[#17211b] relative flex-shrink-0 shadow-sm">
@@ -41,6 +172,29 @@ export function LandingPage() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'zk-payroll' | 'shielded-treasury' | 'compliance'>('zk-payroll');
   const [activeStep, setActiveStep] = useState<number>(1);
+
+  // Section 5 stats scroll-in view observer & replay triggers
+  const statsRef = useRef<HTMLDivElement | null>(null);
+  const [statsInView, setStatsInView] = useState(false);
+  const [replayStat1, setReplayStat1] = useState(0);
+  const [replayStat2, setReplayStat2] = useState(0);
+  const [replayStat3, setReplayStat3] = useState(0);
+  const [replayStat4, setReplayStat4] = useState(0);
+
+  useEffect(() => {
+    if (!statsRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsInView(true);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Auto redirect to dashboard when wallet is connected
   useEffect(() => {
@@ -89,18 +243,18 @@ export function LandingPage() {
         {isConnected ? (
           <Link 
             href="/dashboard"
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
+            className="group flex items-center gap-2 px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
           >
-            <Wallet className="w-4 h-4 text-[#17211b]" />
-            <span>Go to Dashboard</span>
+            <Wallet className="w-4 h-4 text-[#17211b] shrink-0 transition-transform duration-300 group-hover:-rotate-12" />
+            <FlipLabel text="Go to Dashboard" />
           </Link>
         ) : (
           <button 
             onClick={() => setIsWalletModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
+            aria-label="Connect Wallet"
+            className="group flex items-center px-5 py-2.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(215,255,101,0.4)] hover:shadow-[0_6px_20px_rgba(215,255,101,0.6)] hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 cursor-pointer"
           >
-            <OneAMLogo size={15} />
-            <span>Connect 1AM Wallet</span>
+            <DynamicFlipConnect defaultText="Connect Wallet" />
           </button>
         )}
       </nav>
@@ -134,18 +288,18 @@ export function LandingPage() {
               {isConnected ? (
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2.5 px-8 py-3.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_10px_30px_rgba(215,255,101,0.7)] hover:-translate-y-[3px] active:translate-y-0 transition-all duration-300"
+                  className="group flex items-center gap-2.5 px-8 py-3.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_10px_30px_rgba(215,255,101,0.7)] hover:-translate-y-[3px] active:translate-y-0 transition-all duration-300"
                 >
-                  <Wallet className="w-4 h-4 text-[#17211b]" />
-                  <span>Go to Dashboard</span>
+                  <Wallet className="w-4 h-4 text-[#17211b] shrink-0 transition-transform duration-300 group-hover:-rotate-12" />
+                  <FlipLabel text="Go to Dashboard" lineHeight="h-[20px] leading-[20px]" />
                 </Link>
               ) : (
                 <button 
                   onClick={() => setIsWalletModalOpen(true)}
-                  className="flex items-center gap-2.5 px-8 py-3.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_10px_30px_rgba(215,255,101,0.7)] hover:-translate-y-[3px] active:translate-y-0 transition-all duration-300"
+                  aria-label="Connect Wallet to Launch"
+                  className="group flex items-center px-8 py-3.5 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_10px_30px_rgba(215,255,101,0.7)] hover:-translate-y-[3px] active:translate-y-0 transition-all duration-300 cursor-pointer"
                 >
-                  <Wallet className="w-4 h-4 text-[#17211b]" />
-                  <span>Connect Wallet to Launch</span>
+                  Connect Wallet to Launch
                 </button>
               )}
               
@@ -377,7 +531,7 @@ export function LandingPage() {
                     </div>
 
                     <div className="p-4 bg-[#25332b] rounded-xl border border-[#31834b]/40 text-xs text-slate-300 leading-relaxed">
-                      💡 Employees receive funds instantly into their 1AM Wallet key commitments without public block explorers indexing salary amounts.
+                     Employees receive funds instantly into their 1AM Wallet key commitments without public block explorers indexing salary amounts.
                     </div>
                   </div>
                 )}
@@ -411,7 +565,7 @@ export function LandingPage() {
                     </div>
 
                     <div className="p-4 bg-[#25332b] rounded-xl border border-[#31834b]/40 text-xs text-slate-300 leading-relaxed">
-                      ⚡ Transaction fees are seamlessly covered by tDUST fuel reserve, ensuring gasless user experiences for your team.
+                      Transaction fees are seamlessly covered by tDUST fuel reserve, ensuring gasless user experiences for your team.
                     </div>
                   </div>
                 )}
@@ -447,7 +601,7 @@ export function LandingPage() {
                     </div>
 
                     <div className="p-4 bg-[#25332b] rounded-xl border border-[#31834b]/40 text-xs text-slate-300 leading-relaxed">
-                      🔒 Auditors can verify corporate tax compliance using viewing keys without exposing individual salary histories.
+                     Auditors can verify corporate tax compliance using viewing keys without exposing individual salary histories.
                     </div>
                   </div>
                 )}
@@ -521,24 +675,84 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 5: Live Network Performance Stats */}
-      <section className="py-16 bg-[#17211b] text-white border-y border-[#25332b]">
+      {/* Section 5: Live Network Performance Stats with Interactive Count-In Animations */}
+      <section ref={statsRef} className="py-16 bg-[#17211b] text-white border-y border-[#25332b]">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-[#d7ff65]">&lt; 3s</div>
-            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2">ZK Verification</div>
+          <div
+            onMouseEnter={() => setReplayStat1((c) => c + 1)}
+            className="group cursor-pointer select-none transition-transform duration-300 hover:-translate-y-1"
+            title="Hover to replay animation"
+          >
+            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-[#d7ff65] tabular-nums">
+              <AnimatedStatCounter
+                start={60}
+                end={3}
+                prefix="< "
+                suffix="s"
+                inView={statsInView}
+                replayTrigger={replayStat1}
+              />
+            </div>
+            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2 group-hover:text-slate-200 transition-colors">
+              ZK Verification
+            </div>
           </div>
-          <div>
-            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-white">100%</div>
-            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2">Privacy Preserved</div>
+
+          <div
+            onMouseEnter={() => setReplayStat2((c) => c + 1)}
+            className="group cursor-pointer select-none transition-transform duration-300 hover:-translate-y-1"
+            title="Hover to replay animation"
+          >
+            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-white tabular-nums">
+              <AnimatedStatCounter
+                start={0}
+                end={100}
+                suffix="%"
+                inView={statsInView}
+                replayTrigger={replayStat2}
+              />
+            </div>
+            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2 group-hover:text-slate-200 transition-colors">
+              Privacy Preserved
+            </div>
           </div>
-          <div>
-            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-[#d7ff65]">0.00</div>
-            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2">Gas Volatility (tDUST)</div>
+
+          <div
+            onMouseEnter={() => setReplayStat3((c) => c + 1)}
+            className="group cursor-pointer select-none transition-transform duration-300 hover:-translate-y-1"
+            title="Hover to replay animation"
+          >
+            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-[#d7ff65] tabular-nums">
+              <AnimatedStatCounter
+                start={60}
+                end={0}
+                decimals={2}
+                inView={statsInView}
+                replayTrigger={replayStat3}
+              />
+            </div>
+            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2 group-hover:text-slate-200 transition-colors">
+              Gas Volatility (tDUST)
+            </div>
           </div>
-          <div>
-            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-white">256-bit</div>
-            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2">Key Commitment</div>
+
+          <div
+            onMouseEnter={() => setReplayStat4((c) => c + 1)}
+            className="group cursor-pointer select-none transition-transform duration-300 hover:-translate-y-1"
+            title="Hover to replay animation"
+          >
+            <div className="text-3xl sm:text-5xl font-extrabold font-mono text-white tabular-nums">
+              <AnimatedStatCounter
+                start={0}
+                end={256}
+                suffix="-bit"
+                inView={statsInView}
+                replayTrigger={replayStat4}
+              />
+            </div>
+            <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mt-2 group-hover:text-slate-200 transition-colors">
+              Key Commitment
+            </div>
           </div>
         </div>
       </section>
@@ -560,10 +774,10 @@ export function LandingPage() {
 
           <button
             onClick={() => setIsWalletModalOpen(true)}
-            className="inline-flex items-center gap-2.5 px-8 py-4 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_8px_25px_rgba(215,255,101,0.65)] hover:-translate-y-[2px] transition-all duration-200"
+            aria-label="Connect Wallet"
+            className="group inline-flex items-center px-8 py-4 bg-[#d7ff65] hover:bg-[#c5f04e] text-[#17211b] text-sm font-extrabold rounded-xl shadow-[0_6px_20px_rgba(215,255,101,0.45)] hover:shadow-[0_8px_25px_rgba(215,255,101,0.65)] hover:-translate-y-[2px] active:translate-y-0 transition-all duration-200 cursor-pointer"
           >
-            <OneAMLogo size={20} />
-            <span>Connect 1AM Wallet</span>
+            <DynamicFlipConnect defaultText="Connect Wallet" lineHeight="h-[20px] leading-[20px]" iconSize={18} />
           </button>
         </div>
       </section>
