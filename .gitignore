@@ -20,3 +20,5 @@ midnight-level-db/
 *.tsbuildinfo
 skills-lock.json
 scratch/
+/videos/midroll-promo
+/agent/skills
