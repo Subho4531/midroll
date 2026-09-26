@@ -86,6 +86,13 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) =
             <i className="dot"></i>
             Contacts
           </Link>
+          <Link
+            href="/portfolio"
+            className={pathname === '/portfolio' ? 'active' : ''}
+          >
+            <i className="dot"></i>
+            Portfolio
+          </Link>
           {/* <Link
             href="/settings"
             className={pathname === '/settings' ? 'active' : ''}

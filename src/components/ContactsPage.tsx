@@ -280,9 +280,9 @@ export const ContactsPage: React.FC = () => {
           </div>
         </div>
         <img 
-                  src="/images/unsheilded.png" 
-                  alt="Shielded Token Balance Background" 
-                  className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none transition-transform duration-500 group-hover:scale-105 z-0 opacity-20"
+                  src="/images/contacts.jpg" 
+                  alt="Recipient Network Background" 
+                  className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none z-0 opacity-20"
                 />
       </div>
 
@@ -344,26 +344,29 @@ export const ContactsPage: React.FC = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
+                <table className="w-full min-w-[640px] table-fixed text-left text-sm">
                   <thead>
                     <tr className="border-b border-line text-xs text-muted uppercase tracking-wider font-mono">
-                      <th className="pb-3 font-semibold">Name</th>
-                      <th className="pb-3 font-semibold">Wallet Address</th>
-                      <th className="pb-3 font-semibold">Purpose</th>
-                      <th className="pb-3 font-semibold text-right">Default Pay ($USD)</th>
-                      <th className="pb-3 font-semibold pl-4">Teams</th>
+                      <th className="pb-3 pr-4 font-semibold w-[18%]">Name</th>
+                      <th className="pb-3 pr-4 font-semibold w-[34%]">Wallet Address</th>
+                      <th className="pb-3 pr-4 font-semibold w-[18%]">Purpose</th>
+                      <th className="pb-3 pr-4 font-semibold text-right w-[14%]">Default Pay ($USD)</th>
+                      <th className="pb-3 font-semibold pl-4 w-[16%]">Teams</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line text-ink">
                     {filteredContacts.map((contact) => (
                       <tr key={contact.walletAddress} className="hover:bg-[#fbfcfa] transition">
-                        <td className="py-4 font-bold text-ink">{contact.name}</td>
-                        <td className="py-4 font-mono text-xs text-ink">
-                          <span className="bg-[#eef4ee] px-2 py-1 rounded border border-line select-all">
+                        <td className="py-4 pr-4 font-bold text-ink truncate" title={contact.name}>{contact.name}</td>
+                        <td className="py-4 pr-4 font-mono text-xs text-ink">
+                          <span
+                            title={contact.walletAddress}
+                            className="inline-block max-w-full break-all whitespace-normal leading-relaxed bg-[#eef4ee] px-2 py-1 rounded border border-line select-all"
+                          >
                             {contact.walletAddress}
                           </span>
                         </td>
-                        <td className="py-4 text-xs text-muted">{contact.purpose}</td>
+                        <td className="py-4 pr-4 text-xs text-muted break-words">{contact.purpose}</td>
                         <td className="py-4 text-xs font-mono text-right font-bold text-[#31834b]">
                           ${contact.amount?.toFixed(2) || '0.00'}
                         </td>

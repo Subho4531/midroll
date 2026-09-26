@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: "P22 Mackinac W01 Book", Georgia, serif;
-  --font-mono: var(--font-mono), monospace;
+  --font-mono: var(--font-dm-mono), ui-monospace, "DM Mono", monospace;
   
   --color-ink: var(--ink);
   --color-muted: var(--muted);
@@ -84,9 +84,10 @@ button {
   align-items: center;
   gap: 10px;
   padding: 0 8px;
-  font-weight: 800;
+  font-family: "P22 Mackinac W01 Book", Georgia, serif;
+  font-weight: 400;
   letter-spacing: -0.8px;
-  font-size: 22px;
+  font-size: 24px;
   color: var(--ink);
 }
 
@@ -327,6 +328,15 @@ button {
   margin: 0;
 }
 
+/* Display serif headings — same treatment as the landing page
+   (P22 Mackinac Book, natural weight, tight tracking). */
+.display-head {
+  font-family: "P22 Mackinac W01 Book", Georgia, serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
 /* Cards & Grid */
 .card {
   background: var(--card) !important;
@@ -429,11 +439,25 @@ button {
 }
 
 .card h2 {
-  font-size: 16px;
+  font-size: 17px;
   letter-spacing: -0.5px;
   margin: 0;
   font-weight: 800;
   color: var(--ink);
+}
+
+/* Every page-level heading shares the landing page's typographic voice:
+   display type in the P22 Mackinac serif at its natural weight, while
+   labels/eyebrows stay DM Mono and body copy stays Inter.
+   Declared after the base rules above so it wins over `font-extrabold`. */
+.card h2,
+.card.hero h1,
+.intro h1,
+.glass-panel h1 {
+  font-family: "P22 Mackinac W01 Book", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .period {
