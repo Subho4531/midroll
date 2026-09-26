@@ -22,6 +22,7 @@ MidRoll is a next-generation corporate expense reimbursement and employee govern
 - [🛡️ Privacy & ZK Model](#-privacy--zk-model)
 - [💡 User Usage Guide](#-user-usage-guide)
 - [📢 Building in Public & Product X Profile](#-building-in-public--product-x-profile)
+- [🐦 Build in Public on X](#-build-in-public-on-x)
 - [🌕 New Moon To Full Midnight Submission](#-new-moon-to-full-midnight-submission)
 - [🚀 Run Locally & Getting Started](#-run-locally--getting-started)
 - [🖼️ UI Screenshots & Testing Evidence](#-ui-screenshots--testing-evidence)
@@ -204,6 +205,52 @@ Public launch thread and live product announcements published from [@MidRollApp]
 
 ---
 
+## 🐦 Build in Public on X
+
+MidRoll is documented publicly on X as it ships. Every post below links to the live tweet on [@MidRollApp](https://x.com/MidRollApp).
+
+### 1️⃣ Project Announcement — Sep 25, 2026
+> 🌌 Today, we're thrilled to introduce MidRoll — privacy-first corporate expense reimbursements and employee governance, powered by Zero-Knowledge proofs on Midnight. Here's why corporate finance on Web3 is broken, and how we're fixing it 👇
+
+[![MidRoll X post — project announcement](./public/x_publishes/announcement.png)](https://x.com/MidRollApp/status/2103360219292275106)
+
+🔗 **Link:** https://x.com/MidRollApp/status/2103360219292275106
+
+---
+
+### 2️⃣ Confidential Payroll & Shielded Reimbursements — Sep 26, 2026
+> Transparent ledgers make corporate payroll impossible on-chain. Introducing MidRoll: Confidential payroll & shielded reimbursements powered by Midnight. Execute batch payouts while keeping employee salaries & wallet balances 100% private. Trust through privacy. 🔑
+
+[![MidRoll X post — confidential payroll](./public/x_publishes/confidential-payroll.png)](https://x.com/MidRollApp/status/2103840845451677753)
+
+🔗 **Link:** https://x.com/MidRollApp/status/2103840845451677753
+
+---
+
+### 3️⃣ Zero-Knowledge Payroll Architecture — Sep 26, 2026
+> How does MidRoll deliver zero-knowledge payroll?
+> 🔒 Client-side ZK proofs via Compact smart contracts
+> 🛡️ Stealth payouts into key commitments
+> 👁️ Viewing keys for selective audit & tax compliance
+> Decoupling private execution from public verification on Midnight.
+
+🔗 **Link:** https://x.com/MidRollApp/status/2103841547540422880
+
+---
+
+### 4️⃣ Live Preprod Demo — Sep 26, 2026
+> 🚀 Try MidRoll live on Midnight Preprod!
+> ⚡ Connect 1AM or Lace Wallet
+> 💼 Test gasless ZK expense payouts with tDUST
+> 🔐 Dispatch confidential payroll commitments
+> 👉 https://midroll.netlify.app
+
+[![MidRoll X post — live Preprod demo](./public/x_publishes/preprod-demo.png)](https://x.com/MidRollApp/status/2103846246222057591)
+
+🔗 **Link:** https://x.com/MidRollApp/status/2103846246222057591
+
+---
+
 ## 🌕 New Moon To Full Midnight Submission
 
 ### 📁 Level 1 Verification
@@ -287,7 +334,7 @@ Public launch thread and live product announcements published from [@MidRollApp]
 | Working MVP live on Preprod (verifiable address) | **Fulfilled** | Live demo active at [midroll.netlify.app](https://midroll.netlify.app/) (URL: https://midroll.netlify.app/). Compact contract deployed & verified on-chain: `0xd38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f` — status `DEPLOYED` on Midnight Preview at block **#200,965** ([explorer proof](./screenshots/contract_preview.png)). Preprod is configured & ready for redeploy via the funded deployer `mn_addr_preprod1anmdpygn5wqq7zmd8rgu4aq2h8829z2u2870wj3fx8807spfx6hqe6z6tr` (`npm run deploy --network preprod`). |
 | Documentation (README + setup + usage) | **Fulfilled** | Complete technical docs, local setup guide, and step-by-step user walkthrough in [User Usage Guide](#-user-usage-guide) and [Run Locally & Getting Started](#-run-locally--getting-started). |
 | CI/CD pipeline running on the product repo | **Fulfilled** | 3-stage GitHub Actions pipeline in [.github/workflows/ci.yml](https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml) with 7/7 passing unit & integration tests. Proof: [tests_passed.png](./screenshots/tests_passed.png) |
-| Product X profile created, linked in the README | **Fulfilled** | Official profile created and linked: [@MidRollApp](https://x.com/MidRollApp) (URL: https://x.com/MidRollApp), with a 4-post build-in-public log in [Building in Public](#-building-in-public--product-x-profile). |
+| Product X profile created, linked in the README | **Fulfilled** | Official profile created and linked: [@MidRollApp](https://x.com/MidRollApp) (URL: https://x.com/MidRollApp), with 4 build-in-public posts (screenshots + links) in [Build in Public on X](#-build-in-public-on-x). |
 | Minimum 15 meaningful commits | **Fulfilled** | **54 meaningful commits** logged in Git history (`git rev-list --count HEAD`). |
 
 #### Submission Checklist
