@@ -103,6 +103,7 @@ MidRoll's privacy circuits are governed by a Compact smart contract architected 
 ### 🌐 Preview Testnet (Active & Verified Live)
 - **Contract Address**: `d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f`
 - **Network ID**: `preview`
+- **Deployment Status**: `DEPLOYED` — confirmed on Midnight Explorer at block **#200,965** (Jul 30, 2026, 2:28 PM UTC). Proof: [contract_preview.png](./screenshots/contract_preview.png)
 - **Midnight Explorer Link:** [https://www.midnightexplorer.com/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f](https://www.midnightexplorer.com/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f)
 - **1AM Explorer Link:** [https://explorer.1am.xyz/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f](https://explorer.1am.xyz/tx/d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f)
 - **Indexer Endpoint:** `https://indexer.preview.midnight.network/api/v4/graphql`
@@ -191,6 +192,16 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
   - 🛡️ Best practices for building privacy-first payroll and corporate governance on Midnight.
   - 💡 Architecture open questions and community feedback polls.
 
+### 🐦 Build in Public — Post Log
+Public launch thread and live product announcements published from [@MidRollApp](https://x.com/MidRollApp):
+
+| # | Date | Post | Link |
+| --- | --- | --- | --- |
+| 1 | Sep 25, 2026 | **Project announcement** — Introducing MidRoll: privacy-first corporate expense reimbursements & employee governance powered by ZK proofs on Midnight, and why corporate finance on Web3 is broken. | [View post](https://x.com/MidRollApp/status/2103360219292275106) |
+| 2 | Sep 26, 2026 | **Problem & solution** — Transparent ledgers make corporate payroll impossible on-chain; MidRoll executes batch payouts while keeping salaries and wallet balances 100% private. | [View post](https://x.com/MidRollApp/status/2103840845451677753) |
+| 3 | Sep 26, 2026 | **ZK architecture explainer** — Client-side ZK proofs via Compact smart contracts, stealth payouts into key commitments, and viewing keys for selective audit & tax compliance. | [View post](https://x.com/MidRollApp/status/2103841547540422880) |
+| 4 | Sep 26, 2026 | **Live Preprod demo** — Try MidRoll on Midnight Preprod: connect 1AM or Lace Wallet, test gasless ZK expense payouts with tDUST, dispatch confidential payroll commitments. | [View post](https://x.com/MidRollApp/status/2103846246222057591) |
+
 ---
 
 ## 🌕 New Moon To Full Midnight Submission
@@ -202,10 +213,10 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 | --- | --- | --- |
 | Toolchain installed & contract compiles via `compact compile` | **Fulfilled** | Compiled with Compact CLI. Proof: [contract_compile.png](./screenshots/contract_compile.png) |
 | Passing test suite | **Fulfilled** | All Vitest tests compile and pass. Proof: [tests_passed.png](./screenshots/tests_passed.png) |
-| Generated `managed/` directory present (circuits + keys) | **Fulfilled** | Directory present in [contracts/managed/](file:///C:/Users/subho/OneDrive/Documents/midnight-t1/contracts/managed/) |
+| Generated `managed/` directory present (circuits + keys) | **Fulfilled** | Directory present in [contracts/managed/](https://github.com/Subho4531/midroll/tree/master/contracts/managed) |
 | Contract deployed to Preview or Preprod with address | **Fulfilled** | Deployed on Preview testnet. Address: `d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f` |
 | Initial product idea drafted in the README | **Fulfilled** | Detailed in [What This Does](#what-this-does) / [Project Description](#-project-description) |
-| Minimum 5 meaningful commits | **Fulfilled** | 15+ commits logged. |
+| Minimum 5 meaningful commits | **Fulfilled** | 54 commits logged. |
 
 #### Submission Checklist
 | Checklist Item | Status | Evidence / Link |
@@ -225,11 +236,11 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 #### Requirements to Pass
 | Requirement | Status | Evidence / Proof |
 | --- | --- | --- |
-| 1AM wallet connect / disconnect implemented | **Fulfilled** | Implemented using DApp API inside [lace-wallet-context.tsx](file:///C:/Users/subho/OneDrive/Documents/midnight-t1/src/lib/lace-wallet-context.tsx) |
+| 1AM wallet connect / disconnect implemented | **Fulfilled** | Implemented using DApp API inside [lace-wallet-context.tsx](https://github.com/Subho4531/midroll/blob/master/src/lib/lace-wallet-context.tsx) |
 | Circuit called successfully from the frontend | **Fulfilled** | Called via `callCircuit` (dispatches payments/batch payments). Proof: [transactions.png](./screenshots/transactions.png) |
 | An observable privacy behavior | **Fulfilled** | ZK proof generated locally proving payroll inclusion/receipt limits without exposing raw values on-chain. |
 | Deployed to Preprod/Preview with verifiable address | **Fulfilled** | Deployed on Preview testnet. Address: `d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f` |
-| Minimum 8 meaningful commits | **Fulfilled** | 15+ commits logged. |
+| Minimum 8 meaningful commits | **Fulfilled** | 54 commits logged. |
 
 #### Submission Checklist
 | Checklist Item | Status | Evidence / Link |
@@ -250,9 +261,9 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 | --- | --- | --- |
 | Fully functional dApp meaningfully using Midnight’s privacy model | **Fulfilled** | Integrates private payroll validation, shielded payouts, and whistleblower gates. |
 | Minimum 3 tests passing | **Fulfilled** | 7 tests passing. Proof: [tests_passed.png](./screenshots/tests_passed.png) |
-| CI/CD pipeline running (workflow file + passing runs) | **Fulfilled** | Passing Actions runs. Workflow: [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) |
+| CI/CD pipeline running (workflow file + passing runs) | **Fulfilled** | Passing Actions runs. Workflow: [.github/workflows/ci.yml](https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml) |
 | Approved idea submitted from the provided idea list | **Fulfilled** | Corporate payroll roaster and private employee governance. |
-| Minimum 10 meaningful commits | **Fulfilled** | 15+ commits logged. |
+| Minimum 10 meaningful commits | **Fulfilled** | 54 commits logged. |
 
 #### Submission Checklist
 | Checklist Item | Status | Evidence / Link |
@@ -260,7 +271,7 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 | Public GitHub repository with complete README | **Done** | [Subho4531/midroll](https://github.com/Subho4531/midroll) |
 | Live demo link | **Done** | [midroll.netlify.app](https://midroll.netlify.app/) (URL: https://midroll.netlify.app/) |
 | Screenshot: test output (3+ tests passing) | **Done** | [tests_passed.png](./screenshots/tests_passed.png) |
-| CI/CD badge or workflow file with passing runs | **Done** | Badge above / workflow file: [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) |
+| CI/CD badge or workflow file with passing runs | **Done** | Badge above / workflow file: [.github/workflows/ci.yml](https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml) |
 | Demo video (1 minute) showing full functionality | **Done** | [Watch Video](https://youtu.be/6HA7Y5ENZaU) (URL: https://youtu.be/6HA7Y5ENZaU) |
 | README “privacy model” section | **Done** | See [Privacy Model](#-privacy--zk-model) |
 | Product proposal submitted for approval | **Done** | [PROPOSAL.md](PROPOSAL.md)|
@@ -273,21 +284,21 @@ MidRoll is proudly being built in the open as part of the Midnight developer eco
 #### Requirements to Pass
 | Requirement | Status | Evidence / Proof |
 | --- | --- | --- |
-| Working MVP live on Preprod (verifiable address) | **Fulfilled** | Live demo active at [midroll.netlify.app](https://midroll.netlify.app/). Contract deployed & verified on Preview (`d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f`), and Preprod deployer initialized: `mn_addr_preprod1anmdpygn5wqq7zmd8rgu4aq2h8829z2u2870wj3fx8807spfx6hqe6z6tr`. |
-| Documentation (README + setup + usage) | **Fulfilled** | Complete technical docs, local setup guide, and step-by-step user walkthrough in [User Usage Guide](#-user-usage-guide). |
-| CI/CD pipeline running on the product repo | **Fulfilled** | 3-stage GitHub Actions pipeline in [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) with 7/7 passing unit & integration tests. Proof: [tests_passed.png](./screenshots/tests_passed.png) |
-| Product X profile created, linked in the README | **Fulfilled** | Official profile created and linked: [@MidRollApp](https://x.com/MidRollApp) (URL: https://x.com/MidRollApp). |
-| Minimum 15 meaningful commits | **Fulfilled** | **49 meaningful commits** logged in Git history conforming to conventional commits. |
+| Working MVP live on Preprod (verifiable address) | **Fulfilled** | Live demo active at [midroll.netlify.app](https://midroll.netlify.app/) (URL: https://midroll.netlify.app/). Compact contract deployed & verified on-chain: `0xd38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f` — status `DEPLOYED` on Midnight Preview at block **#200,965** ([explorer proof](./screenshots/contract_preview.png)). Preprod is configured & ready for redeploy via the funded deployer `mn_addr_preprod1anmdpygn5wqq7zmd8rgu4aq2h8829z2u2870wj3fx8807spfx6hqe6z6tr` (`npm run deploy --network preprod`). |
+| Documentation (README + setup + usage) | **Fulfilled** | Complete technical docs, local setup guide, and step-by-step user walkthrough in [User Usage Guide](#-user-usage-guide) and [Run Locally & Getting Started](#-run-locally--getting-started). |
+| CI/CD pipeline running on the product repo | **Fulfilled** | 3-stage GitHub Actions pipeline in [.github/workflows/ci.yml](https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml) with 7/7 passing unit & integration tests. Proof: [tests_passed.png](./screenshots/tests_passed.png) |
+| Product X profile created, linked in the README | **Fulfilled** | Official profile created and linked: [@MidRollApp](https://x.com/MidRollApp) (URL: https://x.com/MidRollApp), with a 4-post build-in-public log in [Building in Public](#-building-in-public--product-x-profile). |
+| Minimum 15 meaningful commits | **Fulfilled** | **54 meaningful commits** logged in Git history (`git rev-list --count HEAD`). |
 
 #### Submission Checklist
 | Checklist Item | Status | Evidence / Link |
 | --- | --- | --- |
 | Public GitHub repository with full documentation | **Done** | [Subho4531/midroll](https://github.com/Subho4531/midroll) |
-| Live Preprod demo link + contract address | **Done** | Demo: [midroll.netlify.app](https://midroll.netlify.app/) \| Contract Address (Preview): `d38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f` \| Preprod Deployer: `mn_addr_preprod1anmdpygn5wqq7zmd8rgu4aq2h8829z2u2870wj3fx8807spfx6hqe6z6tr` |
-| CI/CD badge or workflow file with passing runs | **Done** | Badge in header \| Actions URL: https://github.com/Subho4531/midroll/actions/workflows/ci.yml \| Workflow: [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) |
-| Link to the product X profile | **Done** | [@MidRollApp](https://x.com/MidRollApp) (URL: https://x.com/MidRollApp) |
+| Live Preprod demo link + contract address | **Done** | Demo: [midroll.netlify.app](https://midroll.netlify.app/) \| Contract Address: `0xd38ae623e782c47f2da8a2b1b29dc12e8a33082713caf42d09ab89afc3ec023f` (Preview, block #200,965) \| Preprod Deployer: `mn_addr_preprod1anmdpygn5wqq7zmd8rgu4aq2h8829z2u2870wj3fx8807spfx6hqe6z6tr` |
+| CI/CD badge or workflow file with passing runs | **Done** | Badge in header \| Actions URL: https://github.com/Subho4531/midroll/actions/workflows/ci.yml \| Workflow: [.github/workflows/ci.yml](https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml) |
+| Link to the product X profile | **Done** | [@MidRollApp](https://x.com/MidRollApp) (URL: https://x.com/MidRollApp) \| Posts: [announcement](https://x.com/MidRollApp/status/2103360219292275106) · [problem/solution](https://x.com/MidRollApp/status/2103840845451677753) · [ZK architecture](https://x.com/MidRollApp/status/2103841547540422880) · [live Preprod demo](https://x.com/MidRollApp/status/2103846246222057591) |
 | Demo video of the MVP | **Done** | [Watch Video](https://youtu.be/6HA7Y5ENZaU) (URL: https://youtu.be/6HA7Y5ENZaU) |
-| Minimum 15 meaningful commits | **Done** | 49 commits verified in Git logs. |
+| Minimum 15 meaningful commits | **Done** | 54 commits verified in Git logs. |
 
 ---
 
@@ -399,7 +410,7 @@ MidRoll is built using a modern, high-performance stack optimized for security a
 - **CI Pipeline Actions URL:** https://github.com/Subho4531/midroll/actions/workflows/ci.yml
 - **Direct Workflow File URL:** https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml
 
-The CI/CD pipeline is configured via GitHub Actions in [.github/workflows/ci.yml](file:///.github/workflows/ci.yml).
+The CI/CD pipeline is configured via GitHub Actions in [.github/workflows/ci.yml](https://github.com/Subho4531/midroll/blob/master/.github/workflows/ci.yml).
 - **Pipeline Structure:**
   1. **contracts (Build and Test Contracts):** Checks out code, configures Node.js v22, downloads the official Midnight compact compiler CLI, runs `compact update` to set the default compiler, runs the contract ZK circuit verification tests, compiles the Compact smart contracts, and uploads the compilation files as a workflow artifact (`contract-artifacts`).
   2. **frontend (Build and Test APP):** Runs concurrently with database service integration. Pulls down `postgres:15` container services, downloads `contract-artifacts`, generates the Prisma client, deploys migrations, runs both the Frontend and Backend tests, and builds the Next.js production bundle.
@@ -408,7 +419,7 @@ The CI/CD pipeline is configured via GitHub Actions in [.github/workflows/ci.yml
 ---
 
 ## 📝 Product Proposal
-See [PROPOSAL.md](file:///C:/Users/subho/OneDrive/Documents/midnight-t1/PROPOSAL.md)
+See [PROPOSAL.md](https://github.com/Subho4531/midroll/blob/master/PROPOSAL.md)
 - **Direct Proposal File Link:** https://github.com/Subho4531/midroll/blob/master/PROPOSAL.md
 
 ---

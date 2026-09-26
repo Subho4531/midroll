@@ -52,12 +52,12 @@ button {
 }
 
 .sidebar {
-  width: 260px;
-  padding: 28px 20px;
+  width: 236px;
+  padding: 24px;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
   background: #fbfcfa;
   position: sticky;
   top: 0;
@@ -76,18 +76,34 @@ button {
   padding-left: 0px;
   padding-right: 0px;
   border-right-color: transparent;
-  transform: translateX(-260px);
+  transform: translateX(-236px);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 8px;
+  padding: 0;
   font-family: "P22 Mackinac W01 Book", Georgia, serif;
   font-weight: 400;
   letter-spacing: -0.8px;
   font-size: 24px;
+  color: var(--ink);
+}
+
+.collapse-btn {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: #8d9a91;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.collapse-btn:hover {
+  background: #eef4ee;
   color: var(--ink);
 }
 
@@ -110,86 +126,63 @@ button {
   top: 4px;
 }
 
-.workspace {
-  padding: 0 8px;
-}
-
-.workspace button {
-  width: 100%;
-  text-align: left;
-  border: 1px solid var(--line);
-  background: white;
-  padding: 11px 12px;
-  border-radius: 11px;
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-  transition: all 0.2s ease;
-  color: var(--ink);
-}
-
-.workspace button:hover {
-  background: #f8faf7;
-  border-color: #cdd5cd;
-}
-
 .nav {
   display: grid;
-  gap: 4px;
-}
-
-.nav h4 {
-  font: 600 10px var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 10px;
-  margin: 12px 0 6px;
+  gap: 2px;
 }
 
 .nav a {
   color: #546058;
   text-decoration: none;
-  padding: 10px;
-  border-radius: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
   display: flex;
-  gap: 11px;
   align-items: center;
+  font-size: 14px;
   font-weight: 500;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .nav a:hover {
-  background: #eaf1ea;
+  background: #f1f5f1;
   color: var(--ink);
 }
 
 .nav a.active {
   background: #eaf1ea;
   color: var(--ink);
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #98a39b;
+.sidebar-foot {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.net-select button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  background: #f4f7f4;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #435248;
   transition: all 0.15s ease;
 }
 
-.nav a:hover .dot {
-  background: #5cd178;
-}
-
-.nav a.active .dot {
-  background: #4ad66d;
+.net-select button:hover {
+  background: #eaf1ea;
+  border-color: #cdd5cd;
 }
 
 .sidebar .bottom {
-  margin-top: auto;
   padding: 12px;
   background: #eef4ee;
   border-radius: 14px;

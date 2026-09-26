@@ -175,17 +175,16 @@ export const PortfolioPage: React.FC = () => {
       <div className="card hero relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl grid place-items-center font-extrabold text-lg shrink-0 bg-[#d7ff65] text-[#17211b] border border-white/20">
+            {/* <div className="w-14 h-14 rounded-2xl grid place-items-center font-extrabold text-lg shrink-0 bg-[#d7ff65] text-[#17211b] border border-white/20">
               {initialsOf(name || company?.name || '')}
-            </div>
+            </div> */}
             <div>
               <div className="eyebrow text-[#aebbb2] mb-1.5 font-mono">Brand Identity & Workspace Profile</div>
               <h1 className="display-head text-3xl md:text-4xl text-white">
                 {company?.name || 'Brand Portfolio'}
               </h1>
               <p className="text-sm text-[#aebbb2] mt-2 max-w-xl">
-                Edit the public profile details of the current brand. Changes sync to your Postgres
-                workspace keyed by admin wallet.
+                Edit the public profile details of the current brand.
               </p>
               {company && (
                 <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -202,7 +201,6 @@ export const PortfolioPage: React.FC = () => {
             </div>
           </div>
 
-          {/*   */}
         </div>
         <img
           src="/images/unsheilded.png"
@@ -307,7 +305,7 @@ export const PortfolioPage: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-line flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || isSaving}>
+                <Button type="button" variant="outline" style={{ background: 'var(--ink)', color: 'red' }} onClick={handleReset} disabled={!isDirty || isSaving}>
                   Discard
                 </Button>
                 <Button

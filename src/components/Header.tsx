@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Shield, CreditCard, Vote, Building2, FileCode, Wallet, CheckCircle2, Home, ChevronLeft } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { useOneAMWallet } from '@/lib/lace-wallet-context';
 import { OneAMWalletModal } from '@/components/LaceWalletModal';
 
@@ -32,6 +32,8 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) =
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
 
+  const networkLabel = network ? `${network.charAt(0).toUpperCase()}${network.slice(1)} network` : 'No network';
+
   const handleProfileClick = () => {
     setIsWalletModalOpen(true);
   };
@@ -45,76 +47,72 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, setIsCollapsed }) =
             <span className="mark"></span>
             MidRoll
           </Link>
-          <button 
+          <button
             onClick={() => setIsCollapsed(true)}
-            className="icon-btn hover:bg-slate-100 transition rounded-lg p-1 w-8 h-8 flex items-center justify-center shrink-0"
+            className="collapse-btn"
             title="Collapse Sidebar"
+            aria-label="Collapse Sidebar"
           >
-            <ChevronLeft className="w-4 h-4 text-ink" />
-          </button>
-        </div>
-
-        {/* Network / Workspace switcher */}
-        <div className="workspace">
-          <button onClick={() => setIsWalletModalOpen(true)}>
-            {isConnected ? `${network.toUpperCase()} Network` : 'Orbit Labs'}
-            <span>⌄</span>
+            <ChevronLeft className="w-4 h-4" />
           </button>
         </div>
 
         {/* Navigation links */}
         <nav className="nav">
-          <h4>Workspace</h4>
           <Link
             href="/dashboard"
             className={pathname === '/dashboard' ? 'active' : ''}
           >
-            <i className="dot"></i>
             Dashboard
           </Link>
           <Link
             href="/transactions"
             className={pathname === '/transactions' ? 'active' : ''}
           >
-            <i className="dot"></i>
             Transactions
           </Link>
           <Link
             href="/contacts"
             className={pathname === '/contacts' ? 'active' : ''}
           >
-            <i className="dot"></i>
             Contacts
           </Link>
           <Link
             href="/portfolio"
             className={pathname === '/portfolio' ? 'active' : ''}
           >
-            <i className="dot"></i>
             Portfolio
           </Link>
           {/* <Link
             href="/settings"
             className={pathname === '/settings' ? 'active' : ''}
           >
-            <i className="dot"></i>
             Settings
           </Link> */}
         </nav>
 
-        {/* User profile connection indicator */}
-        <div className="bottom cursor-pointer" onClick={handleProfileClick}>
-          <div className="person">
-            <div className="avatar bg-[#ddd3ff] font-extrabold text-[#17211b]">
-              {isConnected ? 'SA' : '??'}
-            </div>
-            <div>
-              <b className="truncate max-w-[120px] text-white">
-                {isConnected ? formatShortAddr(walletAddress) : 'Connect 1AM'}
-              </b>
-              <small className="text-slate-400">
-                {isConnected ? `${tDustBalance.toLocaleString()} tDUST` : 'Not Connected'}
-              </small>
+        {/* Network + account controls */}
+        <div className="sidebar-foot">
+          <div className="net-select">
+            <button onClick={() => setIsWalletModalOpen(true)} title="Switch network">
+              <span className="truncate">{isConnected ? networkLabel : 'Connect wallet'}</span>
+              <span aria-hidden="true">⌄</span>
+            </button>
+          </div>
+
+          <div className="bottom cursor-pointer" onClick={handleProfileClick} role="button" tabIndex={0}>
+            <div className="person">
+              <div className="avatar bg-[#ddd3ff] font-extrabold text-[#17211b]">
+                {isConnected ? 'SA' : '??'}
+              </div>
+              <div className="min-w-0">
+                <b className="truncate max-w-[120px] text-white">
+                  {isConnected ? formatShortAddr(walletAddress) : 'Connect 1AM'}
+                </b>
+                <small className="text-slate-400">
+                  {isConnected ? `${tDustBalance.toLocaleString()} tDUST` : 'Not Connected'}
+                </small>
+              </div>
             </div>
           </div>
         </div>

@@ -233,7 +233,7 @@ export function LandingPage() {
         {/* Logo */}
         <div className="flex items-center gap-3">
           <LogoMark />
-          <span className="font-extrabold text-[22px] tracking-[-0.8px] text-[#17211b]">Midroll</span>
+          <span className="font-semibold text-[22px] tracking-[-0.8px] text-[#17211b]">Midroll</span>
           <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono uppercase bg-[#eaf1ea] text-[#31834b] border border-[#cdd5cd]">
             Midnight ZK
           </span>
@@ -787,7 +787,7 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <LogoMark />
-            <span className="font-extrabold text-xl tracking-tight">Midroll</span>
+            <span className="font-semibold text-xl tracking-tight">Midroll</span>
             <span className="text-xs text-slate-400">© 2026 Midnight ZK Protocol</span>
           </div>
 
